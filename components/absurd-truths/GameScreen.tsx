@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { Card } from '@/data/absurdTruthsDeck'
 
 export type Phase = 'waiting' | 'reading' | 'discuss' | 'reveal'
@@ -27,6 +27,17 @@ export default function GameScreen({
 }: Props) {
   const pct    = ((index + 1) / total) * 100
   const isLast = index >= total - 1
+
+  const shuffledCategories = useMemo(() => {
+    if (!card.categories) return []
+    const cats = [...card.categories]
+    for (let i = cats.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cats[i], cats[j]] = [cats[j], cats[i]]
+    }
+    return cats
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [card.phrase])
 
   return (
     /* h-screen keeps the whole game in the viewport — no page scroll */
@@ -74,25 +85,27 @@ export default function GameScreen({
           </div>
         </div>
 
-        {/* Category pills */}
-        <div className="relative z-10 flex flex-wrap md:flex-nowrap gap-2 md:gap-3 justify-center w-full max-w-3xl mx-auto shrink-0">
-          {card.categories.map(cat => (
-            <span
-              key={cat.label}
-              className="inline-flex items-center gap-1.5 font-inter font-semibold whitespace-nowrap"
-              style={{
-                padding: '7px 18px',
-                borderRadius: 999,
-                border: '2px solid #ddd6fe',
-                background: '#f5f3ff',
-                color: '#6d28d9',
-                fontSize: 'clamp(0.8rem, 1.8vw, 1rem)',
-              }}
-            >
-              {cat.emoji} {cat.label}
-            </span>
-          ))}
-        </div>
+        {/* Category pills — only shown for decks that include categories */}
+        {shuffledCategories.length > 0 && (
+          <div className="relative z-10 flex flex-wrap md:flex-nowrap gap-2 md:gap-3 justify-center w-full max-w-3xl mx-auto shrink-0">
+            {shuffledCategories.map(cat => (
+              <span
+                key={cat.label}
+                className="inline-flex items-center gap-1.5 font-inter font-semibold whitespace-nowrap"
+                style={{
+                  padding: '7px 18px',
+                  borderRadius: 999,
+                  border: '2px solid #ddd6fe',
+                  background: '#f5f3ff',
+                  color: '#6d28d9',
+                  fontSize: 'clamp(0.8rem, 1.8vw, 1rem)',
+                }}
+              >
+                {cat.emoji} {cat.label}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Phase controls — flex-1 so they fill ALL remaining space */}
         <div className="relative z-10 w-full max-w-3xl mx-auto flex-1 min-h-0 flex flex-col">

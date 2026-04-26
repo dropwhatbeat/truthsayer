@@ -2,15 +2,19 @@
 
 import { useEffect, useRef, useState, forwardRef } from 'react'
 
-const ROUND_OPTIONS = [5, 10, 15, 20]
+const ROUND_OPTIONS = [5, 10, 20, 30]
 const TIMER_OPTIONS = [15, 30, 45, 60]
 
+export type DeckType = 'absurd-truths' | 'chinese-sayings' | 'medical'
+
 interface Props {
-  onStart: (rounds: number, timerSecs: number) => void
+  onStart: (rounds: number, timerSecs: number, deckType: DeckType) => void
 }
 
+const REEL_ITEM_H = 38
+
 function getReelValue(el: HTMLDivElement, options: number[]) {
-  const idx = Math.max(0, Math.min(Math.round(el.scrollTop / 52), options.length - 1))
+  const idx = Math.max(0, Math.min(Math.round(el.scrollTop / REEL_ITEM_H), options.length - 1))
   return options[idx]
 }
 
@@ -192,21 +196,22 @@ function Card4() {
 /* ── Main screen ── */
 export default function SetupScreen({ onStart }: Props) {
   const [showSettings, setShowSettings] = useState(false)
+  const [selectedDeck, setSelectedDeck] = useState<DeckType>('absurd-truths')
   const roundsRef = useRef<HTMLDivElement>(null)
   const timerRef  = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!showSettings) return
     setTimeout(() => {
-      if (roundsRef.current) roundsRef.current.scrollTop = 52
-      if (timerRef.current)  timerRef.current.scrollTop  = 52
+      if (roundsRef.current) roundsRef.current.scrollTop = REEL_ITEM_H
+      if (timerRef.current)  timerRef.current.scrollTop  = REEL_ITEM_H
     }, 50)
   }, [showSettings])
 
   function handleStart() {
     const rounds    = roundsRef.current ? getReelValue(roundsRef.current, ROUND_OPTIONS) : 10
     const timerSecs = timerRef.current  ? getReelValue(timerRef.current,  TIMER_OPTIONS) : 30
-    onStart(rounds, timerSecs)
+    onStart(rounds, timerSecs, selectedDeck)
   }
 
   return (
@@ -282,7 +287,7 @@ export default function SetupScreen({ onStart }: Props) {
                   cursor: 'pointer',
                 }}
               >
-                Start a Game 🎲
+                Start a Game
               </button>
             </div>
 
@@ -292,12 +297,39 @@ export default function SetupScreen({ onStart }: Props) {
           </>
         ) : (
           <>
-            <p className="font-caveat font-semibold mt-5 md:mt-8" style={{ fontSize: 'clamp(1.3rem, 3vw, 1.875rem)', color: '#64748b' }}>
+            <p className="font-caveat font-semibold mt-3 md:mt-5" style={{ fontSize: 'clamp(2.2rem, 3vw, 1.75rem)', color: '#64748b' }}>
               Set up your game
             </p>
 
-            {/* Reels: side by side on all screen sizes */}
-            <div className="flex flex-row gap-4 md:gap-12 mt-4 md:mt-6 w-full justify-center">
+            {/* Deck selector */}
+            <div className="flex gap-3 w-full mt-5">
+              {([
+                { key: 'absurd-truths', label: 'Absurd Truths', sub: 'weird English words', on: '#a855f7', off: '#e9d5ff', bg: '#f5f3ff', color: '#7c3aed' },
+                { key: 'chinese-sayings', label: 'Chinese Sayings', sub: 'ancient wisdom & slang', on: '#2dd4bf', off: '#99f6e4', bg: '#f0fdfa', color: '#0f766e' },
+                { key: 'medical', label: 'Medical Terms', sub: 'syndromes & signs', on: '#f59e0b', off: '#fde68a', bg: '#fffbeb', color: '#92400e' },
+              ] as const).map(({ key, label, sub, on, off, bg, color }) => (
+                <button
+                  key={key}
+                  onClick={() => setSelectedDeck(key)}
+                  className="flex-1 flex flex-col justify-center rounded-2xl border-2 transition-all"
+                  style={{
+                    padding: '10px 10px 8px',
+                    borderColor: selectedDeck === key ? on : off,
+                    background: selectedDeck === key ? bg : '#fff',
+                  }}
+                >
+                  <span className="font-caveat font-bold leading-tight" style={{ fontSize: 'clamp(1.5rem, 2.2vw, 1.15rem)', color }}>
+                    {label}
+                  </span>
+                  <span className="font-inter" style={{ fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4, marginTop: 2 }}>
+                    {sub}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Reels */}
+            <div className="flex flex-row gap-4 md:gap-12 mt-3 md:mt-5 w-full justify-center">
               <Reel
                 label="Rounds"
                 labelFull="How many rounds?"
@@ -320,14 +352,14 @@ export default function SetupScreen({ onStart }: Props) {
               />
             </div>
 
-            {/* Doodle button */}
-            <div className="mt-5 md:mt-8 w-full md:w-auto flex justify-center">
+            {/* Start button */}
+            <div className="mt-4 md:mt-6 w-full md:w-auto flex justify-center">
               <button
                 onClick={handleStart}
                 className="btn-press font-caveat font-bold text-white w-full md:w-auto"
                 style={{
-                  fontSize: 'clamp(1.4rem, 3vw, 2rem)',
-                  padding: 'clamp(14px, 2.5vw, 22px) clamp(36px, 6vw, 88px)',
+                  fontSize: 'clamp(1.3rem, 3vw, 2rem)',
+                  padding: 'clamp(11px, 2vw, 18px) clamp(36px, 6vw, 88px)',
                   background: '#a855f7',
                   border: '3px solid #7c3aed',
                   borderRadius: '22px 8px 26px 6px / 6px 22px 8px 26px',
@@ -336,14 +368,14 @@ export default function SetupScreen({ onStart }: Props) {
                   cursor: 'pointer',
                 }}
               >
-                LET&apos;S GO 🎲
+                LET&apos;S GO
               </button>
             </div>
 
             <button
               onClick={() => setShowSettings(false)}
-              className="font-caveat mt-4"
-              style={{ fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#94a3b8' }}
+              className="font-caveat mt-3"
+              style={{ fontSize: 'clamp(0.95rem, 2vw, 1.2rem)', color: '#94a3b8' }}
             >
               ← back
             </button>
@@ -380,17 +412,17 @@ const Reel = forwardRef<HTMLDivElement, ReelProps>(function Reel(
         {labelFull}
       </p>
       <div className="relative rounded-2xl overflow-hidden border-2"
-        style={{ height: 156, borderColor, background: '#fff' }}>
+        style={{ height: 114, borderColor, background: '#fff' }}>
         <div className="absolute top-0 inset-x-0 z-10 pointer-events-none"
-          style={{ height: 52, background: 'linear-gradient(to bottom,#fffdf7 30%,transparent)' }} />
+          style={{ height: 38, background: 'linear-gradient(to bottom,#fffdf7 30%,transparent)' }} />
         <div className="absolute bottom-0 inset-x-0 z-10 pointer-events-none"
-          style={{ height: 52, background: 'linear-gradient(to top,#fffdf7 30%,transparent)' }} />
+          style={{ height: 38, background: 'linear-gradient(to top,#fffdf7 30%,transparent)' }} />
         <div className="absolute inset-x-0 pointer-events-none"
-          style={{ top: 52, height: 52, background: highlightBg, borderTop: `2px solid ${highlightBorder}`, borderBottom: `2px solid ${highlightBorder}` }} />
+          style={{ top: 38, height: 38, background: highlightBg, borderTop: `2px solid ${highlightBorder}`, borderBottom: `2px solid ${highlightBorder}` }} />
         <div ref={ref} className="reel absolute inset-0">
           <div className="reel-item" />
           {options.map(opt => (
-            <div key={opt} className="reel-item font-caveat font-bold" style={{ fontSize: '2rem', color: accentColor }}>
+            <div key={opt} className="reel-item font-caveat font-bold" style={{ fontSize: '1.5rem', color: accentColor }}>
               {opt}
             </div>
           ))}

@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { GAME_DECK, type Card } from '@/data/absurdTruthsDeck'
-import SetupScreen from './SetupScreen'
+import { CHINESE_SAYINGS_DECK } from '@/data/chineseSayingsDeck'
+import { MEDICAL_DECK } from '@/data/medicalDeck'
+import SetupScreen, { type DeckType } from './SetupScreen'
 import GameScreen, { type Phase } from './GameScreen'
 import EndScreen from './EndScreen'
 
@@ -21,6 +23,7 @@ export default function AbsurdTruthsGame() {
   const [screen,    setScreen]    = useState<Screen>('setup')
   const [rounds,    setRounds]    = useState(10)
   const [timerSecs, setTimerSecs] = useState(30)
+  const [deckType,  setDeckType]  = useState<DeckType>('absurd-truths')
   const [deck,      setDeck]      = useState<Card[]>([])
   const [index,     setIndex]     = useState(0)
   const [phase,     setPhase]     = useState<Phase>('waiting')
@@ -46,10 +49,18 @@ export default function AbsurdTruthsGame() {
   }, [phase, timerSecs])
 
   /* ── Handlers ── */
-  const handleStart = useCallback((r: number, t: number) => {
+  function pickDeck(dt: DeckType) {
+    if (dt === 'chinese-sayings') return CHINESE_SAYINGS_DECK
+    if (dt === 'medical') return MEDICAL_DECK
+    return GAME_DECK
+  }
+
+  const handleStart = useCallback((r: number, t: number, dt: DeckType) => {
+    const sourceDeck = pickDeck(dt)
     setRounds(r)
     setTimerSecs(t)
-    setDeck(shuffle(GAME_DECK).slice(0, r))
+    setDeckType(dt)
+    setDeck(shuffle(sourceDeck).slice(0, r))
     setIndex(0)
     setPhase('waiting')
     setScreen('game')
@@ -74,11 +85,12 @@ export default function AbsurdTruthsGame() {
   }, [deck.length])
 
   const handleNewRound = useCallback(() => {
-    setDeck(shuffle(GAME_DECK).slice(0, rounds))
+    const sourceDeck = pickDeck(deckType)
+    setDeck(shuffle(sourceDeck).slice(0, rounds))
     setIndex(0)
     setPhase('waiting')
     setScreen('game')
-  }, [rounds])
+  }, [rounds, deckType])
 
   const handleHome = useCallback(() => setScreen('setup'), [])
 
