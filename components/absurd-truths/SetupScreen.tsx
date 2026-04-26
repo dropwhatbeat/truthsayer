@@ -187,7 +187,7 @@ function Card4() {
       </div>
       <div className="px-5 py-4" style={{ background: '#f0fdfa' }}>
         <p className="font-inter font-semibold text-sm leading-snug" style={{ color: '#134e4a' }}>
-          Invent a story to fool the guesser — only Truthsayer tells the truth!
+          Invent a believable story, only Truthsayer tells the truth!
         </p>
       </div>
     </div>
