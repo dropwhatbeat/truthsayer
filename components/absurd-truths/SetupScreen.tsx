@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useEffect, useRef, useState, forwardRef } from 'react'
@@ -110,7 +111,7 @@ function Card2() {
         <div className="flex flex-col items-center gap-2 flex-1 justify-center">
           <div className="rounded-xl text-center py-1.5 px-3 font-black w-full"
             style={{ background: '#FFF8EE', border: '2px solid #fde68a', fontSize: '1.15rem', color: '#1e293b' }}>
-            Groak
+            Psithurism
           </div>
           <div className="flex gap-1.5 flex-wrap justify-center">
             {[['🦑','sea creature'],['💃','old dance'],['🍳','kitchen tool']].map(([e, l]) => (
@@ -158,7 +159,7 @@ function Card3() {
       </div>
       <div className="px-5 py-4" style={{ background: '#f5f3ff' }}>
         <p className="font-inter font-semibold text-sm leading-snug" style={{ color: '#4c1d95' }}>
-          Everyone closes their eyes — only one sees the answer
+          Everyone closes their eyes, gamemaster picks a truthsayer to see the truth
         </p>
       </div>
     </div>
@@ -171,16 +172,16 @@ function Card4() {
       <div className="flex-1 flex flex-col px-5 pt-5 pb-4" style={{ background: '#ccfbf1' }}>
         <div className="flex items-center justify-between mb-4">
           <Badge n={4} color="#0d9488" />
-          <span className="font-caveat font-bold text-base" style={{ color: '#0f766e' }}>time to bluff!</span>
+          <span className="font-caveat font-bold text-base" style={{ color: '#0f766e' }}>storytelling time!</span>
         </div>
         <div className="flex flex-col gap-2 flex-1 justify-center">
           <div className="rounded-2xl px-3 py-2 font-inter text-xs"
             style={{ background: '#fff', border: '1.5px solid #a855f7', color: '#374151', borderRadius: '14px 14px 14px 4px' }}>
-            &ldquo;It&apos;s clearly a type of cheese...&rdquo; 🧀
+            &ldquo;It&apos;s a a Greek word, it means to fall down &rdquo;
           </div>
           <div className="rounded-2xl px-3 py-2 font-inter text-xs self-end"
             style={{ background: '#fff', border: '1.5px solid #2dd4bf', color: '#374151', borderRadius: '14px 14px 4px 14px', maxWidth: '90%' }}>
-            &ldquo;An ancient Peruvian ritual!&rdquo; ✨
+            &ldquo;An ancient ritual where people sneeze many times&rdquo; 
           </div>
         </div>
       </div>
