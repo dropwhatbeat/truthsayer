@@ -1,0 +1,29 @@
+import type { Metadata } from 'next'
+import { Caveat, Inter } from 'next/font/google'
+import './globals.css'
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  variable: '--font-caveat',
+  weight: ['400', '600', '700'],
+  display: 'swap',
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+export const metadata: Metadata = {
+  title: 'Absurd Truths',
+  description: 'A game of beautiful lies',
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={`${caveat.variable} ${inter.variable}`}>
+      <body className="font-inter min-h-screen bg-cream">{children}</body>
+    </html>
+  )
+}
