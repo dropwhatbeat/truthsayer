@@ -27,15 +27,45 @@ function ArrowRight({ color }: { color: string }) {
 
 function Badge({ n, color }: { n: number; color: string }) {
   return (
-    <div
-      className="flex items-center justify-center font-caveat font-bold shrink-0"
-      style={{ width: 26, height: 26, borderRadius: '50%', background: color, color: '#fff', fontSize: '0.9rem' }}
-    >
+    <div className="flex items-center justify-center font-caveat font-bold shrink-0"
+      style={{ width: 22, height: 22, borderRadius: '50%', background: color, color: '#fff', fontSize: '0.8rem' }}>
       {n}
     </div>
   )
 }
 
+/* ── Mobile: compact 2×2 tiles ── */
+const MOBILE_STEPS = [
+  { n: 1, icon: '🕵️', topBg: '#ede9fe', bottomBg: '#faf5ff', border: '#ddd6fe', accent: '#a855f7', textColor: '#4c1d95', text: '1 guesser, everyone else plays' },
+  { n: 2, icon: '📖', topBg: '#ccfbf1', bottomBg: '#f0fdfa', border: '#99f6e4', accent: '#0d9488', textColor: '#134e4a', text: 'Everyone sees the word & hints' },
+  { n: 3, icon: '👁️', topBg: '#1e1b4b', bottomBg: '#f5f3ff', border: '#4c1d95', accent: '#7c3aed', textColor: '#4c1d95', text: 'Only Truthsayer peeks in secret' },
+  { n: 4, icon: '🎭', topBg: '#ccfbf1', bottomBg: '#f0fdfa', border: '#99f6e4', accent: '#0d9488', textColor: '#134e4a', text: 'Bluff to fool the guesser!' },
+]
+
+function MobileTiles() {
+  return (
+    <div className="grid grid-cols-2 gap-2 w-full mt-4">
+      {MOBILE_STEPS.map(({ n, icon, topBg, bottomBg, border, accent, textColor, text }) => (
+        <div key={n} className="flex flex-col rounded-2xl overflow-hidden border-2" style={{ borderColor: border }}>
+          <div className="flex flex-col items-center justify-center py-3 gap-1.5" style={{ background: topBg }}>
+            <div className="flex items-center justify-center font-caveat font-bold"
+              style={{ width: 20, height: 20, borderRadius: '50%', background: accent, color: '#fff', fontSize: '0.7rem' }}>
+              {n}
+            </div>
+            <span style={{ fontSize: '2rem', lineHeight: 1 }}>{icon}</span>
+          </div>
+          <div className="px-2.5 py-2" style={{ background: bottomBg }}>
+            <p className="font-inter font-semibold leading-snug" style={{ fontSize: '0.65rem', color: textColor }}>
+              {text}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ── Desktop: rich illustrated cards ── */
 function Card1() {
   return (
     <div className="flex-1 flex flex-col rounded-3xl overflow-hidden border-2 min-w-0" style={{ borderColor: '#ddd6fe' }}>
@@ -47,12 +77,12 @@ function Card1() {
         <div className="flex items-end justify-center gap-2 flex-1">
           <div className="flex flex-col items-center gap-1">
             <div className="flex items-center justify-center rounded-full border-2 border-violet-600"
-              style={{ width: 48, height: 48, background: '#a855f7', fontSize: '1.6rem' }}>🕵️</div>
-            <span style={{ fontSize: '0.6rem', color: '#6d28d9', fontFamily: 'Inter', fontWeight: 700, letterSpacing: '0.06em' }}>GUESSER</span>
+              style={{ width: 44, height: 44, background: '#a855f7', fontSize: '1.4rem' }}>🕵️</div>
+            <span style={{ fontSize: '0.55rem', color: '#6d28d9', fontFamily: 'Inter', fontWeight: 700, letterSpacing: '0.06em' }}>GUESSER</span>
           </div>
           {['😄','😄','😄','😄'].map((e, i) => (
             <div key={i} className="flex items-center justify-center rounded-full"
-              style={{ width: 36, height: 36, background: '#c4b5fd', fontSize: '1.15rem' }}>{e}</div>
+              style={{ width: 32, height: 32, background: '#c4b5fd', fontSize: '1.1rem' }}>{e}</div>
           ))}
         </div>
       </div>
@@ -74,14 +104,14 @@ function Card2() {
           <span className="font-caveat font-bold text-base" style={{ color: '#0f766e' }}>see the prompt</span>
         </div>
         <div className="flex flex-col items-center gap-2 flex-1 justify-center">
-          <div className="rounded-xl text-center py-2 px-4 font-black w-full"
-            style={{ background: '#FFF8EE', border: '2px solid #fde68a', fontSize: '1.2rem', color: '#1e293b' }}>
+          <div className="rounded-xl text-center py-1.5 px-3 font-black w-full"
+            style={{ background: '#FFF8EE', border: '2px solid #fde68a', fontSize: '1.15rem', color: '#1e293b' }}>
             Groak
           </div>
           <div className="flex gap-1.5 flex-wrap justify-center">
             {[['🦑','sea creature'],['💃','old dance'],['🍳','kitchen tool']].map(([e, l]) => (
               <span key={l} className="font-inter font-semibold"
-                style={{ fontSize: '0.65rem', padding: '3px 8px', borderRadius: 999, background: '#f5f3ff', border: '1.5px solid #ddd6fe', color: '#6d28d9' }}>
+                style={{ fontSize: '0.62rem', padding: '3px 8px', borderRadius: 999, background: '#f5f3ff', border: '1.5px solid #ddd6fe', color: '#6d28d9' }}>
                 {e} {l}
               </span>
             ))}
@@ -110,13 +140,13 @@ function Card3() {
             <span style={{ fontSize: '1.4rem', opacity: 0.6 }}>😑</span>
             <span style={{ fontSize: '1.4rem', opacity: 0.6 }}>😑</span>
             <div style={{ position: 'relative' }}>
-              <div style={{ position: 'absolute', inset: -6, borderRadius: '50%',
+              <div style={{ position: 'absolute', inset: -5, borderRadius: '50%',
                 background: 'radial-gradient(circle, rgba(167,139,250,0.6) 0%, transparent 70%)' }}/>
-              <span style={{ fontSize: '1.7rem', position: 'relative' }}>👁️</span>
+              <span style={{ fontSize: '1.6rem', position: 'relative' }}>👁️</span>
             </div>
             <span style={{ fontSize: '1.4rem', opacity: 0.6 }}>😑</span>
           </div>
-          <div className="rounded-xl px-3 py-2 text-center w-full"
+          <div className="rounded-xl px-3 py-1.5 text-center w-full"
             style={{ background: 'rgba(255,255,255,0.08)', border: '1.5px solid rgba(167,139,250,0.4)' }}>
             <p className="font-caveat font-bold text-sm" style={{ color: '#c4b5fd' }}>👁 only truthsayer peeks</p>
           </div>
@@ -159,6 +189,7 @@ function Card4() {
   )
 }
 
+/* ── Main screen ── */
 export default function SetupScreen({ onStart }: Props) {
   const [showSettings, setShowSettings] = useState(false)
   const roundsRef = useRef<HTMLDivElement>(null)
@@ -180,69 +211,52 @@ export default function SetupScreen({ onStart }: Props) {
 
   return (
     <div
-      className="relative min-h-screen flex flex-col items-center justify-center px-8 py-16 overflow-hidden"
+      className="relative min-h-screen flex flex-col items-center justify-center px-4 md:px-8 py-8 md:py-16 overflow-hidden"
       style={{ background: '#FFFDF7' }}
     >
-      {/* ── Background doodles — big, scattered ── */}
-
-      {/* top-left: giant ? */}
-      <span className="doodle font-caveat font-bold" style={{ fontSize: '20rem', color: '#a855f7', opacity: 0.04, top: '-4%', left: '-2%', transform: 'rotate(-14deg)', lineHeight: 1 }}>?</span>
-
-      {/* top-right: big ! */}
-      <span className="doodle font-caveat font-bold" style={{ fontSize: '14rem', color: '#2dd4bf', opacity: 0.05, top: '2%', right: '3%', transform: 'rotate(10deg)', lineHeight: 1 }}>!</span>
-
-      {/* mid-left: hmm */}
-      <span className="doodle font-caveat" style={{ fontSize: '5rem', color: '#a855f7', opacity: 0.06, top: '44%', left: '1%', transform: 'rotate(-8deg)' }}>hmm</span>
-
-      {/* left side: wavy squiggle */}
-      <svg className="doodle" style={{ top: '62%', left: '0%', opacity: 0.06 }} width="60" height="200" viewBox="0 0 60 200" fill="none">
-        <path d="M30 5 Q5 30 30 55 Q55 80 30 105 Q5 130 30 155 Q55 180 30 195" stroke="#a855f7" strokeWidth="3" fill="none" strokeLinecap="round"/>
-      </svg>
-
-      {/* bottom-left: sparkle */}
-      <span className="doodle font-caveat" style={{ fontSize: '3rem', color: '#a855f7', opacity: 0.07, bottom: '8%', left: '6%', transform: 'rotate(-12deg)' }}>✦</span>
-
-      {/* center-top: star */}
-      <svg className="doodle" style={{ top: '6%', left: '42%', opacity: 0.06 }} width="70" height="70" viewBox="0 0 38 38" fill="none">
+      {/* ── Background doodles ── */}
+      <span className="doodle font-caveat font-bold" style={{ fontSize: 'clamp(6rem,18vw,20rem)', color: '#a855f7', opacity: 0.04, top: '-4%', left: '-2%', transform: 'rotate(-14deg)', lineHeight: 1 }}>?</span>
+      <span className="doodle font-caveat font-bold" style={{ fontSize: 'clamp(5rem,12vw,14rem)', color: '#2dd4bf', opacity: 0.05, top: '2%', right: '3%', transform: 'rotate(10deg)', lineHeight: 1 }}>!</span>
+      <span className="doodle font-caveat" style={{ fontSize: 'clamp(1.5rem,4vw,5rem)', color: '#a855f7', opacity: 0.06, top: '44%', left: '1%', transform: 'rotate(-8deg)' }}>hmm</span>
+      <svg className="doodle" style={{ top: '6%', left: '40%', opacity: 0.06 }} width="55" height="55" viewBox="0 0 38 38" fill="none">
         <path d="M19 2 L22.5 12.5 L34 12.5 L25 19.5 L28.5 30 L19 23.5 L9.5 30 L13 19.5 L4 12.5 L15.5 12.5 Z" stroke="#a855f7" strokeWidth="2" strokeLinejoin="round"/>
       </svg>
-
-      {/* mid-right: dashed circle */}
-      <svg className="doodle" style={{ top: '36%', right: '2%', opacity: 0.07 }} width="100" height="100" viewBox="0 0 36 36" fill="none">
+      <svg className="doodle" style={{ top: '38%', right: '2%', opacity: 0.07 }} width="70" height="70" viewBox="0 0 36 36" fill="none">
         <path d="M18 4 C27 4 32 11 32 18 C32 27 27 32 18 32 C9 32 4 27 4 18 C4 9 9 4 18 4" stroke="#2dd4bf" strokeWidth="2" strokeDasharray="5 4" strokeLinecap="round"/>
       </svg>
-
-      {/* right side: lightning bolt */}
-      <svg className="doodle" style={{ top: '58%', right: '1%', opacity: 0.07 }} width="50" height="80" viewBox="0 0 28 44" fill="none">
+      <svg className="doodle" style={{ top: '60%', right: '1%', opacity: 0.07 }} width="36" height="58" viewBox="0 0 28 44" fill="none">
         <path d="M16 2 L4 22 L13 22 L12 42 L24 20 L15 20 Z" stroke="#2dd4bf" strokeWidth="2.2" strokeLinejoin="round"/>
       </svg>
-
-      {/* bottom-right: sparkle */}
-      <span className="doodle font-caveat" style={{ fontSize: '2.5rem', color: '#2dd4bf', opacity: 0.07, bottom: '10%', right: '7%', transform: 'rotate(18deg)' }}>✦</span>
-
-      {/* bottom-center: wide wavy line */}
-      <svg className="doodle" style={{ bottom: '5%', left: '15%', opacity: 0.05 }} width="500" height="24" viewBox="0 0 500 24" fill="none">
-        <path d="M0 12 Q31 2 62 12 Q93 22 124 12 Q155 2 186 12 Q217 22 248 12 Q279 2 310 12 Q341 22 372 12 Q403 2 434 12 Q465 22 496 12" stroke="#2dd4bf" strokeWidth="3" fill="none" strokeLinecap="round"/>
+      <span className="doodle font-caveat" style={{ fontSize: '2rem', color: '#a855f7', opacity: 0.07, bottom: '8%', left: '5%', transform: 'rotate(-12deg)' }}>✦</span>
+      <span className="doodle font-caveat" style={{ fontSize: '1.8rem', color: '#2dd4bf', opacity: 0.07, bottom: '8%', right: '6%', transform: 'rotate(18deg)' }}>✦</span>
+      <svg className="doodle hidden md:block" style={{ bottom: '5%', left: '12%', opacity: 0.05 }} width="460" height="22" viewBox="0 0 460 22" fill="none">
+        <path d="M0 11 Q29 2 58 11 Q87 20 116 11 Q145 2 174 11 Q203 20 232 11 Q261 2 290 11 Q319 20 348 11 Q377 2 406 11 Q435 20 460 11" stroke="#2dd4bf" strokeWidth="3" fill="none" strokeLinecap="round"/>
       </svg>
 
       {/* ── Content ── */}
-      <div className="relative z-10 w-full max-w-5xl flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-lg md:max-w-5xl flex flex-col items-center">
 
-        {/* Header */}
-        <h1 className="font-caveat font-bold text-center leading-none" style={{ fontSize: '5.5rem', color: '#a855f7' }}>
+        {/* Header — scales via clamp, no breakpoint jump */}
+        <h1 className="font-caveat font-bold text-center leading-none"
+          style={{ fontSize: 'clamp(2.4rem, 6vw, 5.5rem)', color: '#a855f7' }}>
           Absurd Truths
         </h1>
-        <svg width="280" height="14" viewBox="0 0 280 14" fill="none" className="mt-1">
+        <svg width="200" height="12" viewBox="0 0 280 14" fill="none" className="mt-1">
           <path d="M0 7 Q35 1 70 7 Q105 13 140 7 Q175 1 210 7 Q245 13 280 7" stroke="#2dd4bf" strokeWidth="3" fill="none" strokeLinecap="round"/>
         </svg>
-        <p className="font-caveat text-2xl mt-1 italic text-center" style={{ color: '#94a3b8' }}>
+        <p className="font-caveat italic text-center mt-1" style={{ fontSize: 'clamp(1rem, 2.5vw, 1.5rem)', color: '#94a3b8' }}>
           a game of beautiful lies
         </p>
 
         {!showSettings ? (
           <>
-            {/* ── 4-card horizontal flow ── */}
-            <div className="flex items-stretch gap-3 w-full mt-12">
+            {/* Mobile only: compact 2×2 grid */}
+            <div className="md:hidden w-full">
+              <MobileTiles />
+            </div>
+
+            {/* Desktop only: illustrated card row */}
+            <div className="hidden md:flex items-stretch gap-3 w-full mt-10">
               <Card1 />
               <ArrowRight color="#a855f7" />
               <Card2 />
@@ -252,28 +266,41 @@ export default function SetupScreen({ onStart }: Props) {
               <Card4 />
             </div>
 
-            <button
-              onClick={() => setShowSettings(true)}
-              className="btn-press mt-12 px-20 py-5 rounded-2xl font-caveat font-bold text-white shadow-md"
-              style={{ fontSize: '2rem', background: '#a855f7' }}
-            >
-              Start a Game 🎲
-            </button>
+            {/* Doodle button */}
+            <div className="mt-5 md:mt-10 w-full md:w-auto flex justify-center">
+              <button
+                onClick={() => setShowSettings(true)}
+                className="btn-press font-caveat font-bold text-white relative w-full md:w-auto"
+                style={{
+                  fontSize: 'clamp(1.4rem, 3vw, 2rem)',
+                  padding: 'clamp(14px, 2.5vw, 22px) clamp(36px, 6vw, 88px)',
+                  background: '#a855f7',
+                  border: '3px solid #7c3aed',
+                  borderRadius: '8px 26px 6px 22px / 22px 6px 26px 8px',
+                  boxShadow: '5px 5px 0 #7c3aed',
+                  transform: 'rotate(-1deg)',
+                  cursor: 'pointer',
+                }}
+              >
+                Start a Game 🎲
+              </button>
+            </div>
 
-            <p className="font-inter text-sm mt-4 text-center" style={{ color: '#cbd5e1' }}>
+            <p className="font-inter text-center mt-3" style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.875rem)', color: '#cbd5e1' }}>
               6–8 players · no phones needed · just beautiful lies
             </p>
           </>
         ) : (
           <>
-            <p className="font-caveat text-3xl mt-10 font-semibold" style={{ color: '#64748b' }}>
+            <p className="font-caveat font-semibold mt-5 md:mt-8" style={{ fontSize: 'clamp(1.3rem, 3vw, 1.875rem)', color: '#64748b' }}>
               Set up your game
             </p>
 
-            {/* Reels side by side */}
-            <div className="flex gap-12 mt-8 items-start">
+            {/* Reels: side by side on all screen sizes */}
+            <div className="flex flex-row gap-4 md:gap-12 mt-4 md:mt-6 w-full justify-center">
               <Reel
-                label="How many rounds?"
+                label="Rounds"
+                labelFull="How many rounds?"
                 ref={roundsRef}
                 options={ROUND_OPTIONS.map(String)}
                 accentColor="#a855f7"
@@ -282,7 +309,8 @@ export default function SetupScreen({ onStart }: Props) {
                 borderColor="#e9d5ff"
               />
               <Reel
-                label="Reading timer?"
+                label="Timer"
+                labelFull="Reading timer?"
                 ref={timerRef}
                 options={TIMER_OPTIONS.map(n => `${n}s`)}
                 accentColor="#2dd4bf"
@@ -292,18 +320,30 @@ export default function SetupScreen({ onStart }: Props) {
               />
             </div>
 
-            <button
-              onClick={handleStart}
-              className="btn-press mt-10 px-20 py-5 rounded-2xl font-caveat font-bold text-white shadow-md"
-              style={{ fontSize: '2rem', background: '#a855f7' }}
-            >
-              LET&apos;S GO 🎲
-            </button>
+            {/* Doodle button */}
+            <div className="mt-5 md:mt-8 w-full md:w-auto flex justify-center">
+              <button
+                onClick={handleStart}
+                className="btn-press font-caveat font-bold text-white w-full md:w-auto"
+                style={{
+                  fontSize: 'clamp(1.4rem, 3vw, 2rem)',
+                  padding: 'clamp(14px, 2.5vw, 22px) clamp(36px, 6vw, 88px)',
+                  background: '#a855f7',
+                  border: '3px solid #7c3aed',
+                  borderRadius: '22px 8px 26px 6px / 6px 22px 8px 26px',
+                  boxShadow: '5px 5px 0 #7c3aed',
+                  transform: 'rotate(0.8deg)',
+                  cursor: 'pointer',
+                }}
+              >
+                LET&apos;S GO 🎲
+              </button>
+            </div>
 
             <button
               onClick={() => setShowSettings(false)}
-              className="font-caveat text-xl mt-4"
-              style={{ color: '#94a3b8' }}
+              className="font-caveat mt-4"
+              style={{ fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#94a3b8' }}
             >
               ← back
             </button>
@@ -314,9 +354,10 @@ export default function SetupScreen({ onStart }: Props) {
   )
 }
 
-/* ── Reel sub-component ── */
+/* ── Reel ── */
 interface ReelProps {
   label: string
+  labelFull: string
   options: string[]
   accentColor: string
   highlightBg: string
@@ -325,18 +366,21 @@ interface ReelProps {
 }
 
 const Reel = forwardRef<HTMLDivElement, ReelProps>(function Reel(
-  { label, options, accentColor, highlightBg, highlightBorder, borderColor },
+  { label, labelFull, options, accentColor, highlightBg, highlightBorder, borderColor },
   ref,
 ) {
   return (
-    <div style={{ width: 220 }}>
-      <p className="font-caveat text-2xl font-semibold text-center mb-3" style={{ color: '#64748b' }}>
+    <div className="flex flex-col flex-1 md:flex-none md:w-[220px]">
+      {/* Short label on mobile, full label on desktop */}
+      <p className="font-caveat font-semibold text-center mb-2 md:mb-3 md:hidden"
+        style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', color: '#64748b' }}>
         {label}
       </p>
-      <div
-        className="relative rounded-2xl overflow-hidden border-2"
-        style={{ height: 156, borderColor, background: '#fff' }}
-      >
+      <p className="font-caveat font-semibold text-center mb-3 hidden md:block text-2xl" style={{ color: '#64748b' }}>
+        {labelFull}
+      </p>
+      <div className="relative rounded-2xl overflow-hidden border-2"
+        style={{ height: 156, borderColor, background: '#fff' }}>
         <div className="absolute top-0 inset-x-0 z-10 pointer-events-none"
           style={{ height: 52, background: 'linear-gradient(to bottom,#fffdf7 30%,transparent)' }} />
         <div className="absolute bottom-0 inset-x-0 z-10 pointer-events-none"
