@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Caveat, Inter } from 'next/font/google'
 import './globals.css'
+import { PostHogProvider } from './providers'
 
 const caveat = Caveat({
   subsets: ['latin'],
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${caveat.variable} ${inter.variable}`}>
-      <body className="font-inter min-h-screen bg-cream">{children}</body>
+      <body className="font-inter min-h-screen bg-cream"><PostHogProvider>{children}</PostHogProvider></body>
     </html>
   )
 }

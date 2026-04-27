@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import type { Card } from '@/data/absurdTruthsDeck'
 
 export type Phase = 'waiting' | 'reading' | 'discuss' | 'reveal'
@@ -12,6 +13,7 @@ interface Props {
   total: number
   timeLeft: number
   timerSecs: number
+  deckType: string
   onShowSecret: () => void
   onRevealToAll: () => void
   onBack: () => void
@@ -22,11 +24,21 @@ interface Props {
 const CIRCUMFERENCE = 2 * Math.PI * 45
 
 export default function GameScreen({
-  card, phase, index, total, timeLeft, timerSecs,
+  card, phase, index, total, timeLeft, timerSecs, deckType,
   onShowSecret, onRevealToAll, onBack, onNext, onHome,
 }: Props) {
+  const posthog = usePostHog()
   const pct    = ((index + 1) / total) * 100
   const isLast = index >= total - 1
+
+  useEffect(() => {
+    posthog.capture('card_viewed', { card_index: index + 1, total_cards: total, phrase: card.phrase, deck_type: deckType })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [card.phrase, index])
+
+  function track(event: string, props?: Record<string, unknown>) {
+    posthog.capture(event, { card_index: index + 1, phrase: card.phrase, deck_type: deckType, ...props })
+  }
 
   const shuffledCategories = useMemo(() => {
     if (!card.categories) return []
@@ -53,7 +65,7 @@ export default function GameScreen({
 
       {/* Top bar */}
       <div className="flex justify-between items-center px-4 md:px-8 pt-3 pb-2 shrink-0">
-        <button onClick={onHome} className="btn-press font-caveat text-lg md:text-xl" style={{ color: '#c4b5fd' }}>
+        <button onClick={() => { track('game_home_clicked'); onHome() }} className="btn-press font-caveat text-lg md:text-xl" style={{ color: '#c4b5fd' }}>
           ← home
         </button>
         <span className="font-caveat text-lg md:text-xl" style={{ color: '#94a3b8' }}>
@@ -109,7 +121,7 @@ export default function GameScreen({
 
         {/* Phase controls — flex-1 so they fill ALL remaining space */}
         <div className="relative z-10 w-full max-w-3xl mx-auto flex-1 min-h-0 flex flex-col">
-          {phase === 'waiting' && <WaitingPhase onShowSecret={onShowSecret} />}
+          {phase === 'waiting' && <WaitingPhase onShowSecret={() => { track('secret_shown'); onShowSecret() }} />}
           {phase === 'reading' && (
             <ReadingPhase
               answer={card.answer}
@@ -117,12 +129,17 @@ export default function GameScreen({
               timerSecs={timerSecs}
             />
           )}
-          {phase === 'discuss' && <DiscussPhase onBack={onBack} onRevealToAll={onRevealToAll} />}
+          {phase === 'discuss' && (
+            <DiscussPhase
+              onBack={() => { track('back_clicked', { from_phase: 'discuss' }); onBack() }}
+              onRevealToAll={() => { track('reveal_to_all_clicked'); onRevealToAll() }}
+            />
+          )}
           {phase === 'reveal'  && (
             <RevealPhase
               answer={card.answer}
-              onBack={onBack}
-              onNext={onNext}
+              onBack={() => { track('back_clicked', { from_phase: 'reveal' }); onBack() }}
+              onNext={() => { track(isLast ? 'game_end_clicked' : 'next_card_clicked'); onNext() }}
               isLast={isLast}
             />
           )}

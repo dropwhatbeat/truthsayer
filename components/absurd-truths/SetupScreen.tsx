@@ -2,6 +2,7 @@
 'use client'
 
 import { useEffect, useRef, useState, forwardRef } from 'react'
+import { usePostHog } from 'posthog-js/react'
 
 const ROUND_OPTIONS = [5, 10, 20, 30]
 const TIMER_OPTIONS = [15, 30, 45, 60]
@@ -196,6 +197,7 @@ function Card4() {
 
 /* ── Main screen ── */
 export default function SetupScreen({ onStart }: Props) {
+  const posthog = usePostHog()
   const [showSettings, setShowSettings] = useState(false)
   const [selectedDeck, setSelectedDeck] = useState<DeckType>('absurd-truths')
   const roundsRef = useRef<HTMLDivElement>(null)
@@ -212,6 +214,7 @@ export default function SetupScreen({ onStart }: Props) {
   function handleStart() {
     const rounds    = roundsRef.current ? getReelValue(roundsRef.current, ROUND_OPTIONS) : 10
     const timerSecs = timerRef.current  ? getReelValue(timerRef.current,  TIMER_OPTIONS) : 30
+    posthog.capture('setup_confirmed', { rounds, timer_secs: timerSecs, deck_type: selectedDeck })
     onStart(rounds, timerSecs, selectedDeck)
   }
 
@@ -275,7 +278,7 @@ export default function SetupScreen({ onStart }: Props) {
             {/* Doodle button */}
             <div className="mt-5 md:mt-10 w-full md:w-auto flex justify-center">
               <button
-                onClick={() => setShowSettings(true)}
+                onClick={() => { posthog.capture('setup_opened'); setShowSettings(true) }}
                 className="btn-press font-caveat font-bold text-white relative w-full md:w-auto"
                 style={{
                   fontSize: 'clamp(1.4rem, 3vw, 2rem)',
@@ -311,7 +314,7 @@ export default function SetupScreen({ onStart }: Props) {
               ] as const).map(({ key, label, sub, on, off, bg, color }) => (
                 <button
                   key={key}
-                  onClick={() => setSelectedDeck(key)}
+                  onClick={() => { posthog.capture('deck_selected', { deck_type: key }); setSelectedDeck(key) }}
                   className="flex-1 flex flex-col justify-center rounded-2xl border-2 transition-all"
                   style={{
                     padding: '10px 10px 8px',
@@ -374,7 +377,7 @@ export default function SetupScreen({ onStart }: Props) {
             </div>
 
             <button
-              onClick={() => setShowSettings(false)}
+              onClick={() => { posthog.capture('setup_back_clicked'); setShowSettings(false) }}
               className="font-caveat mt-3"
               style={{ fontSize: 'clamp(0.95rem, 2vw, 1.2rem)', color: '#94a3b8' }}
             >

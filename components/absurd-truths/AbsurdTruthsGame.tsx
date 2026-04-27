@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import { GAME_DECK, type Card } from '@/data/absurdTruthsDeck'
 import { CHINESE_SAYINGS_DECK } from '@/data/chineseSayingsDeck'
 import { MEDICAL_DECK } from '@/data/medicalDeck'
@@ -20,6 +21,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export default function AbsurdTruthsGame() {
+  const posthog = usePostHog()
   const [screen,    setScreen]    = useState<Screen>('setup')
   const [rounds,    setRounds]    = useState(10)
   const [timerSecs, setTimerSecs] = useState(30)
@@ -64,7 +66,8 @@ export default function AbsurdTruthsGame() {
     setIndex(0)
     setPhase('waiting')
     setScreen('game')
-  }, [])
+    posthog.capture('game_started', { rounds: r, timer_secs: t, deck_type: dt })
+  }, [posthog])
 
   const handleShowSecret  = useCallback(() => setPhase('reading'),  [])
   const handleRevealToAll = useCallback(() => setPhase('reveal'),   [])
@@ -77,12 +80,13 @@ export default function AbsurdTruthsGame() {
     setIndex(prev => {
       if (prev >= deck.length - 1) {
         setScreen('end')
+        posthog.capture('game_completed', { total_cards: deck.length, deck_type: deckType })
         return prev
       }
       setPhase('waiting')
       return prev + 1
     })
-  }, [deck.length])
+  }, [deck.length, deckType, posthog])
 
   const handleNewRound = useCallback(() => {
     const sourceDeck = pickDeck(deckType)
@@ -90,9 +94,13 @@ export default function AbsurdTruthsGame() {
     setIndex(0)
     setPhase('waiting')
     setScreen('game')
-  }, [rounds, deckType])
+    posthog.capture('new_round_started', { rounds, deck_type: deckType })
+  }, [rounds, deckType, posthog])
 
-  const handleHome = useCallback(() => setScreen('setup'), [])
+  const handleHome = useCallback(() => {
+    posthog.capture('home_clicked', { from_screen: screen })
+    setScreen('setup')
+  }, [screen, posthog])
 
   /* ── Render ── */
   if (screen === 'setup') {
@@ -108,6 +116,7 @@ export default function AbsurdTruthsGame() {
         total={deck.length}
         timeLeft={timeLeft}
         timerSecs={timerSecs}
+        deckType={deckType}
         onShowSecret={handleShowSecret}
         onRevealToAll={handleRevealToAll}
         onBack={handleBack}
