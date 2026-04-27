@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Caveat, Inter } from 'next/font/google'
-import './globals.css'
 import { PostHogProvider } from './providers'
+import './globals.css'
 
 const caveat = Caveat({
   subsets: ['latin'],
