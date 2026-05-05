@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-truthsayer}
+      POSTGRES_USER: ${POSTGRES_USER:-truthsayer}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-truthsayer}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
