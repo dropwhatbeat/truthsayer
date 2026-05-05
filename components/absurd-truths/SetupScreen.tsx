@@ -3,11 +3,11 @@
 
 import { useEffect, useRef, useState, forwardRef } from 'react'
 import { usePostHog } from 'posthog-js/react'
+import type { DeckType } from '@/lib/types'
+export type { DeckType }
 
 const ROUND_OPTIONS = [5, 10, 20, 30]
 const TIMER_OPTIONS = [15, 30, 45, 60]
-
-export type DeckType = 'absurd-truths' | 'chinese-sayings' | 'medical'
 
 interface Props {
   onStart: (rounds: number, timerSecs: number, deckType: DeckType) => void

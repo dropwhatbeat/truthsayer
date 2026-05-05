@@ -1,13 +1,5 @@
-export interface Category {
-  emoji: string
-  label: string
-}
-
-export interface Card {
-  phrase: string
-  categories?: [Category, Category, Category]
-  answer: string
-}
+import type { Card, Category } from '@/lib/types'
+export type { Card, Category }
 
 export const GAME_DECK: Card[] = [
   {

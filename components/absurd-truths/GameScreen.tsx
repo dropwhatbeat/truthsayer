@@ -1,14 +1,15 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect } from 'react'
 import { usePostHog } from 'posthog-js/react'
-import type { Card } from '@/data/absurdTruthsDeck'
-
-export type Phase = 'waiting' | 'reading' | 'discuss' | 'reveal'
+import type { Card, GamePhase } from '@/lib/types'
+import Timer from './Timer'
+import WordCard from './WordCard'
+import CategoryPills from './CategoryPills'
 
 interface Props {
   card: Card
-  phase: Phase
+  phase: GamePhase
   index: number
   total: number
   timeLeft: number
@@ -20,8 +21,6 @@ interface Props {
   onNext: () => void
   onHome: () => void
 }
-
-const CIRCUMFERENCE = 2 * Math.PI * 45
 
 export default function GameScreen({
   card, phase, index, total, timeLeft, timerSecs, deckType,
@@ -40,16 +39,7 @@ export default function GameScreen({
     posthog.capture(event, { card_index: index + 1, phrase: card.phrase, deck_type: deckType, ...props })
   }
 
-  const shuffledCategories = useMemo(() => {
-    if (!card.categories) return []
-    const cats = [...card.categories]
-    for (let i = cats.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [cats[i], cats[j]] = [cats[j], cats[i]]
-    }
-    return cats
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [card.phrase])
+
 
   return (
     /* h-screen keeps the whole game in the viewport — no page scroll */
@@ -82,42 +72,8 @@ export default function GameScreen({
           style={{ fontSize: '20rem', color: '#a855f7', opacity: 0.03, top: '40%', left: '50%', transform: 'translate(-50%,-50%)', lineHeight: 1 }}
         >?</span>
 
-        {/* Word card — compact, sits near top */}
-        <div className="relative z-10 w-full max-w-3xl mx-auto shrink-0">
-          <div
-            className="rounded-3xl px-6 py-4 md:px-10 md:py-5 text-center shadow-sm border"
-            style={{ background: '#FFF8EE', borderColor: '#fde68a' }}
-          >
-            <p
-              className="font-caveat font-bold text-gray-900 leading-tight"
-              style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', overflowWrap: 'break-word' }}
-            >
-              {card.phrase}
-            </p>
-          </div>
-        </div>
-
-        {/* Category pills — only shown for decks that include categories */}
-        {shuffledCategories.length > 0 && (
-          <div className="relative z-10 flex flex-wrap md:flex-nowrap gap-2 md:gap-3 justify-center w-full max-w-3xl mx-auto shrink-0">
-            {shuffledCategories.map(cat => (
-              <span
-                key={cat.label}
-                className="inline-flex items-center gap-1.5 font-inter font-semibold whitespace-nowrap"
-                style={{
-                  padding: '7px 18px',
-                  borderRadius: 999,
-                  border: '2px solid #ddd6fe',
-                  background: '#f5f3ff',
-                  color: '#6d28d9',
-                  fontSize: 'clamp(0.8rem, 1.8vw, 1rem)',
-                }}
-              >
-                {cat.emoji} {cat.label}
-              </span>
-            ))}
-          </div>
-        )}
+        <WordCard card={card} />
+        <CategoryPills categories={card.categories ?? []} />
 
         {/* Phase controls — flex-1 so they fill ALL remaining space */}
         <div className="relative z-10 w-full max-w-3xl mx-auto flex-1 min-h-0 flex flex-col">
@@ -184,16 +140,6 @@ function WaitingPhase({ onShowSecret }: { onShowSecret: () => void }) {
 }
 
 function ReadingPhase({ answer, timeLeft, timerSecs }: { answer: string; timeLeft: number; timerSecs: number }) {
-  const ringRef = useRef<SVGCircleElement>(null)
-
-  useEffect(() => {
-    if (!ringRef.current) return
-    const frac   = Math.max(0, timeLeft / timerSecs)
-    const offset = CIRCUMFERENCE * (1 - frac)
-    ringRef.current.style.strokeDashoffset = String(offset)
-    ringRef.current.style.stroke = frac > 0.5 ? '#2dd4bf' : frac > 0.2 ? '#fb923c' : '#ef4444'
-  }, [timeLeft, timerSecs])
-
   return (
     /* flex-1 min-h-0: fills all remaining height after word card + categories */
     <div className="flex flex-col md:flex-row gap-3 md:gap-4 flex-1 min-h-0">
@@ -208,30 +154,7 @@ function ReadingPhase({ answer, timeLeft, timerSecs }: { answer: string; timeLef
         </p>
       </div>
 
-      {/* Timer — fixed size on desktop, compact row on mobile */}
-      <div className="flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 shrink-0 md:py-2">
-        <div style={{ position: 'relative', width: 120, height: 120 }}>
-          <svg width="120" height="120" viewBox="0 0 130 130">
-            <circle cx="65" cy="65" r="45" fill="none" stroke="#e2e8f0" strokeWidth="8"/>
-            <g transform="rotate(-90 65 65)">
-              <circle
-                ref={ringRef}
-                cx="65" cy="65" r="45"
-                fill="none" stroke="#2dd4bf" strokeWidth="8" strokeLinecap="round"
-                className="timer-ring-fill"
-                style={{ strokeDasharray: CIRCUMFERENCE, strokeDashoffset: 0 }}
-              />
-            </g>
-          </svg>
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <span className="font-caveat font-bold" style={{ fontSize: '2.4rem', color: '#1e293b', lineHeight: 1 }}>
-              {Math.max(0, timeLeft)}
-            </span>
-            <span className="font-caveat" style={{ fontSize: '0.85rem', color: '#94a3b8' }}>sec</span>
-          </div>
-        </div>
-        <p className="font-caveat md:mt-1.5" style={{ color: '#94a3b8', fontSize: '1rem' }}>reading time</p>
-      </div>
+      <Timer seconds={timeLeft} total={timerSecs} />
     </div>
   )
 }
