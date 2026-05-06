@@ -1,5 +1,4 @@
-import type { Card, Category } from '@/lib/types'
-export type { Card, Category }
+import type { Card, Category } from '../types'
 
 export const GAME_DECK: Card[] = [
   {

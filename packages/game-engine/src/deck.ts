@@ -1,7 +1,7 @@
-import type { Card, DeckType } from '@/lib/types'
-import { GAME_DECK } from '@/data/absurdTruthsDeck'
-import { CHINESE_SAYINGS_DECK } from '@/data/chineseSayingsDeck'
-import { MEDICAL_DECK } from '@/data/medicalDeck'
+import type { Card, DeckType } from './types'
+import { GAME_DECK } from './decks/absurdTruthsDeck'
+import { CHINESE_SAYINGS_DECK } from './decks/chineseSayingsDeck'
+import { MEDICAL_DECK } from './decks/medicalDeck'
 
 export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]

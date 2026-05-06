@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState, forwardRef } from 'react'
 import { usePostHog } from 'posthog-js/react'
-import type { DeckType } from '@/lib/types'
+import type { DeckType } from '@bsking/game-engine'
 export type { DeckType }
 
 const ROUND_OPTIONS = [5, 10, 20, 30]

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import type { Category } from '@/lib/types'
+import type { Category } from '@bsking/game-engine'
 
 interface Props {
   categories: Category[]

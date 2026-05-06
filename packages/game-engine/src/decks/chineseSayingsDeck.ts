@@ -1,4 +1,4 @@
-import type { Card } from './absurdTruthsDeck'
+import type { Card } from '../types'
 
 export const CHINESE_SAYINGS_DECK: Card[] = [
   {

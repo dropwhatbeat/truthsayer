@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { shuffle, getDeckByType, prepareDeck } from '../deck'
+import { shuffle, getDeckByType, prepareDeck } from '@bsking/game-engine'
 
 describe('shuffle', () => {
   it('returns an array of the same length', () => {

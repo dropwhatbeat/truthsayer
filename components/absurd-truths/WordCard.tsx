@@ -1,4 +1,4 @@
-import type { Card } from '@/lib/types'
+import type { Card } from '@bsking/game-engine'
 
 interface Props {
   card: Card

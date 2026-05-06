@@ -12,8 +12,15 @@
     "test": "vitest run",
     "pretest": "docker compose up -d && sleep 3"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "dependencies": {
+    "@bsking/game-engine": "*",
+    "@types/bcrypt": "^6.0.0",
     "@vercel/analytics": "^2.0.1",
+    "@xstate/react": "^6.1.0",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "next": "15.5.15",

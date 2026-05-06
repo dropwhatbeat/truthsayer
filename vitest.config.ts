@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname),
+      '@bsking/game-engine': path.resolve(__dirname, 'packages/game-engine/src'),
     },
   },
 })
