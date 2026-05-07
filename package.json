@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "@bsking/game-engine": "*",
+    "@tanstack/react-query": "^5.100.9",
     "@types/bcrypt": "^6.0.0",
     "@vercel/analytics": "^2.0.1",
     "@xstate/react": "^6.1.0",

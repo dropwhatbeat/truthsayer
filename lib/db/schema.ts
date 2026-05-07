@@ -65,7 +65,7 @@ export const gameMoves = pgTable("game_moves", {
     .notNull()
     .references(() => gameRounds.id, { onDelete: "cascade" }),
   moveType: text("move_type", {
-    enum: ["submit_description", "cast_vote", "next_round"],
+    enum: ["submit_description", "cast_vote", "next_round", "ready_to_vote"],
   }).notNull(),
   data: jsonb("data"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

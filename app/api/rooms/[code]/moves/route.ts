@@ -75,7 +75,7 @@ export async function POST(
       roomId: room.id,
       playerId: player.id,
       roundId: currentRound.id,
-      moveType: body.moveType as 'submit_description' | 'cast_vote' | 'next_round',
+      moveType: body.moveType as 'submit_description' | 'cast_vote' | 'next_round' | 'ready_to_vote',
       data: body.data ?? {},
     })
 
@@ -94,7 +94,7 @@ export async function POST(
       if (currentRound.roundNumber >= (config.roundCount ?? roundList.length)) {
         await db
           .update(rooms)
-          .set({ status: 'finished', currentPhase: 'finished', updatedAt: new Date() })
+          .set({ status: 'finished', currentPhase: 'end', updatedAt: new Date() })
           .where(eq(rooms.id, room.id))
       } else {
         await db
@@ -106,6 +106,11 @@ export async function POST(
       await db
         .update(rooms)
         .set({ currentPhase: 'reveal', updatedAt: new Date() })
+        .where(eq(rooms.id, room.id))
+    } else if (body.moveType === 'ready_to_vote') {
+      await db
+        .update(rooms)
+        .set({ currentPhase: 'voting', updatedAt: new Date() })
         .where(eq(rooms.id, room.id))
     }
 

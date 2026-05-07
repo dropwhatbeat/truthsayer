@@ -35,6 +35,14 @@ export async function POST(
       })
       .returning({ id: players.id })
 
+    // Set the first player to join as the room creator (host)
+    if (room.createdBy === null) {
+      await db
+        .update(rooms)
+        .set({ createdBy: player.id })
+        .where(eq(rooms.id, room.id))
+    }
+
     return NextResponse.json(
       { playerId: player.id, playerSecret: plaintext },
       { status: 201 }

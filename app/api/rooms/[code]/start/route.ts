@@ -22,7 +22,7 @@ export async function POST(
       return NextResponse.json({ error: 'Room not found' }, { status: 404 })
     }
 
-    if (room.status !== 'lobby') {
+    if (room.status !== 'lobby' && room.status !== 'finished') {
       return NextResponse.json({ error: 'Game already started' }, { status: 409 })
     }
 
