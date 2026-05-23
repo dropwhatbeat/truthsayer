@@ -34,8 +34,18 @@ export function getBaseUrl(): string {
 export async function newPage(): Promise<Page> {
   await ensureBrowser()
   const browser = getBrowser()
-  const page = await browser.newPage()
+  const context = await browser.createBrowserContext()
+  const page = await context.newPage()
   await page.setViewport({ width: 375, height: 812 })
+  const closeContext = async () => {
+    await context.close().catch(() => {})
+  }
+  const patchedPage = page as Page & {
+    close: (options?: Parameters<Page['close']>[0]) => Promise<void>
+  }
+  patchedPage.close = async () => {
+    await closeContext()
+  }
   return page
 }
 
@@ -327,10 +337,19 @@ export async function registerPlayer(
  */
 export async function startGame(page: Page, code: string): Promise<void> {
   await waitForPath(page, `/game/${code}/waiting`)
-  await waitForPlayerCount(page, 3)
   await waitForButtonEnabled(page, 'Start Game')
   await clickButtonByText(page, 'Start Game', { requireEnabled: true })
-  await waitForPath(page, `/game/${code}/reading`)
+  await page.waitForFunction(
+    (roomCode: string) => {
+      const pathname = window.location.pathname
+      return (
+        pathname === `/game/${roomCode}` ||
+        pathname.includes(`/game/${roomCode}/reading`)
+      )
+    },
+    { timeout: 15000 },
+    code
+  )
 }
 
 export async function submitVote(

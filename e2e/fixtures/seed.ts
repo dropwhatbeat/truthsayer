@@ -8,10 +8,10 @@ import {
   PlayerCredentials,
   getBaseUrl,
   ensureAppOrigin,
+  newPage,
   setPlayerCredentials,
   waitForPath,
 } from '../helpers'
-import { getBrowser } from '../setup'
 
 export interface SeedGameConfig {
   playerCount: number
@@ -48,12 +48,10 @@ export async function seedGameState(
   await registerPlayer(page0, code, PLAYER_NAMES[0])
 
   // Players 1..N-1
-  const browser = getBrowser()
   const pages: Page[] = [page0]
 
   for (let i = 1; i < playerCount; i++) {
-    const p = await browser.newPage()
-    await p.setViewport({ width: 375, height: 812 })
+    const p = await newPage()
     pages.push(p)
 
     const creds = await joinRoom(p, code)
@@ -149,7 +147,12 @@ export async function seedGameViaEndpoint(
       const res = await fetch(`${url}/api/test/seed`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cfg),
+        body: JSON.stringify({
+          phase: cfg.targetPhase,
+          playerCount: cfg.playerCount,
+          deckType: cfg.deckType,
+          roundCount: cfg.roundCount,
+        }),
       })
       if (!res.ok) {
         throw new Error(`Seed endpoint failed: ${res.status}`)

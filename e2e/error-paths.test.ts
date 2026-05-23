@@ -2,17 +2,25 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Page } from 'puppeteer'
 import {
   newPage,
-  createRoom,
-  joinRoom,
-  registerPlayer,
-  startGame,
   submitMove,
   getBaseUrl,
-  clearPlayerCredentials,
+  setPlayerCredentials,
   waitForPath,
-  waitForPlayerCount,
+  waitForText,
+  clickButtonByText,
+  PlayerCredentials,
 } from './helpers'
+import { seedGameViaEndpoint } from './fixtures/seed'
 import { closeBrowser } from './setup'
+
+interface RoomState {
+  createdBy: string | null
+  players: Array<{
+    id: string
+    name: string | null
+    role: string | null
+  }>
+}
 
 describe('Error Paths', () => {
   let page: Page
@@ -26,12 +34,21 @@ describe('Error Paths', () => {
     await closeBrowser()
   })
 
+  async function fetchRoomState(roomCode: string): Promise<RoomState> {
+    return page.evaluate(async (currentCode) => {
+      const res = await fetch(`/api/rooms/${currentCode}`)
+      if (!res.ok) {
+        throw new Error(`Failed to fetch room ${currentCode}: ${res.status}`)
+      }
+      return res.json() as Promise<RoomState>
+    }, roomCode)
+  }
+
   it('shows error for non-existent room code', async () => {
     await page.goto(`${getBaseUrl()}/game/NONEXIST`, {
       waitUntil: 'domcontentloaded',
     })
 
-    // Wait for the TanStack Query error to render
     await page.waitForFunction(
       () => {
         const text = document.body.innerText.toLowerCase()
@@ -59,90 +76,81 @@ describe('Error Paths', () => {
   })
 
   it('shows error when joining already-started game', async () => {
-    // Create a room, join and register 3 players, start game
-    await page.goto(getBaseUrl(), { waitUntil: 'networkidle0' })
-    await clearPlayerCredentials(page)
-
-    const { code } = await createRoom(page)
-    await registerPlayer(page, code, 'Host')
-
-    // Join player 2
-    const p2 = await newPage()
-    await joinRoom(p2, code)
-    await registerPlayer(p2, code, 'Player2')
-
-    // Join player 3
-    const p3 = await newPage()
-    await joinRoom(p3, code)
-    await registerPlayer(p3, code, 'Player3')
-
-    // Navigate host to waiting and wait for button to be enabled
-    await page.goto(`${getBaseUrl()}/game/${code}/waiting`, {
-      waitUntil: 'domcontentloaded',
+    const seeded = await seedGameViaEndpoint(page, {
+      playerCount: 3,
+      targetPhase: 'reading',
     })
-    await waitForPlayerCount(page, 3)
 
-    await startGame(page, code)
-    await waitForPath(page, `/game/${code}/reading`)
-
-    // Now try to join with a new page
     const p4 = await newPage()
     await p4.goto(getBaseUrl(), { waitUntil: 'networkidle0' })
+    await p4.type('input[placeholder="Enter Room Code"]', seeded.code)
+    await clickButtonByText(p4, 'Join', { requireEnabled: true })
+    await waitForText(p4, 'Game has already started.')
 
-    try {
-      await joinRoom(p4, code)
-    } catch {
-      // Expected
-    }
-
-    await p4.goto(getBaseUrl(), { waitUntil: 'networkidle0' })
-    await new Promise((r) => setTimeout(r, 2000))
-
-    await p2.close()
-    await p3.close()
+    const pathname = await p4.evaluate(() => window.location.pathname)
+    expect(pathname).toBe('/')
     await p4.close()
   })
 
   it('handles 409 conflict on duplicate vote gracefully', async () => {
-    await page.goto(getBaseUrl(), { waitUntil: 'networkidle0' })
-    await clearPlayerCredentials(page)
-
-    const { code } = await createRoom(page)
-    await registerPlayer(page, code, 'Host')
-
-    const p2 = await newPage()
-    await joinRoom(p2, code)
-    await registerPlayer(p2, code, 'Player2')
-
-    const p3 = await newPage()
-    await joinRoom(p3, code)
-    await registerPlayer(p3, code, 'Player3')
-
-    // Start game
-    await page.goto(`${getBaseUrl()}/game/${code}/waiting`, {
-      waitUntil: 'domcontentloaded',
+    const seeded = await seedGameViaEndpoint(page, {
+      playerCount: 3,
+      targetPhase: 'voting',
     })
-    await waitForPlayerCount(page, 3)
-    await startGame(page, code)
-    await waitForPath(page, `/game/${code}/reading`)
+    const room = await fetchRoomState(seeded.code)
+    const judge = room.players.find((player) => player.role === 'judge')
+    const target = room.players.find((player) => player.role === 'honest')
 
-    // Advance to voting
-    await submitMove(page, code, 'ready_to_vote')
-    await waitForPath(page, `/game/${code}/voting`)
+    if (!judge || !target) {
+      throw new Error('Seeded voting room missing judge/honest players')
+    }
 
-    // Submit vote
-    await submitMove(page, code, 'cast_vote', {
-      targetPlayerName: 'Player2',
+    const judgeCreds = seeded.credentials.find(
+      (creds) => creds.playerId === judge.id
+    )
+    if (!judgeCreds) {
+      throw new Error('Missing credentials for seeded judge')
+    }
+
+    await setPlayerCredentials(page, judgeCreds)
+    await page.goto(`${getBaseUrl()}/game/${seeded.code}/voting`, {
+      waitUntil: 'networkidle0',
     })
 
-    // Submit same vote again
-    await submitMove(page, code, 'cast_vote', {
-      targetPlayerName: 'Player2',
+    await submitMove(page, seeded.code, 'cast_vote', {
+      targetPlayerName: target.name || 'Unknown',
     })
 
-    expect(true).toBe(true)
+    const duplicateStatus = await page.evaluate(
+      async ({
+        roomCode,
+        creds,
+        targetPlayerId,
+      }: {
+        roomCode: string
+        creds: PlayerCredentials
+        targetPlayerId: string
+      }) => {
+        const res = await fetch(`/api/rooms/${roomCode}/moves`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            playerId: creds.playerId,
+            playerSecret: creds.playerSecret,
+            moveType: 'cast_vote',
+            data: { targetPlayerId },
+          }),
+        })
+        return res.status
+      },
+      {
+        roomCode: seeded.code,
+        creds: judgeCreds,
+        targetPlayerId: target.id,
+      }
+    )
 
-    await p2.close()
-    await p3.close()
+    expect(duplicateStatus).toBe(409)
+    await waitForText(page, 'You voted for')
   })
 })
