@@ -72,7 +72,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const params = useParams<{ code: string }>()
   const code = String(params.code).toUpperCase()
 
-  const creds = useMemo(() => getCredentials(code), [code])
+  const storedCredsRaw =
+    typeof window !== 'undefined' ? localStorage.getItem('bsking-player') : null
+  const creds = useMemo(() => getCredentials(code), [code, storedCredsRaw])
 
   const {
     data: room,

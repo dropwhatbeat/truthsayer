@@ -4,8 +4,13 @@ import path from 'path'
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'node',
-    exclude: ['e2e/**', 'node_modules/**', '.opencode/**'],
+    include: ['e2e/**/*.test.ts'],
+    testTimeout: 30000,
+    hookTimeout: 30000,
+    fileParallelism: false,
+    env: {
+      BASE_URL: process.env.BASE_URL || 'http://localhost:3000',
+    },
   },
   resolve: {
     alias: {
