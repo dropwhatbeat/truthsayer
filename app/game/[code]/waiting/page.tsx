@@ -38,7 +38,7 @@ export default function WaitingPage() {
         setError(data.error || 'Failed to start game')
         return
       }
-      router.replace(`/game/${room!.code}`)
+      router.replace(`/game/${room!.code}/reading`)
     } catch {
       setError('Network error. Please try again.')
     } finally {

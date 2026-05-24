@@ -110,6 +110,8 @@ describe('Lobby & Registration', () => {
     const body = await page.evaluate(() => document.body.innerText)
     expect(body).toContain('Waiting Room')
     expect(body).toContain('TestPlayer')
+    expect(body).toContain('Need at least 3 players')
+    expect(body).not.toContain('Waiting for host to start')
   })
 
   it('shows validation error for empty name', async () => {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useGame } from '@/lib/game-context'
 
 const PHASE_ROUTES: Record<string, string> = {
@@ -15,31 +15,33 @@ const PHASE_ROUTES: Record<string, string> = {
 }
 
 export default function GameEntryPage() {
+  const params = useParams<{ code: string }>()
   const router = useRouter()
   const { room, currentPhase, currentPlayerId, currentPlayerSecret, isLoading, isError } = useGame()
   const [reconnecting, setReconnecting] = useState(true)
   const [reconnectError, setReconnectError] = useState(false)
+  const code = String(params.code).toUpperCase()
 
   useEffect(() => {
     if (isLoading) return
 
     // No credentials stored — must register
     if (!currentPlayerId) {
-      router.replace('./register')
+      router.replace(`/game/${code}/register`)
       return
     }
 
     // Try to reconnect using stored credentials
     async function reconnect() {
       try {
-        const res = await fetch(`/api/rooms/${(window.location.pathname.match(/\/game\/([^/]+)/) || [])[1] || ''}/reconnect`, {
+        const res = await fetch(`/api/rooms/${code}/reconnect`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ playerId: currentPlayerId, playerSecret: currentPlayerSecret }),
         })
         if (!res.ok) {
           localStorage.removeItem('bsking-player')
-          router.replace('./register')
+          router.replace(`/game/${code}/register`)
           return
         }
         setReconnecting(false)
@@ -49,7 +51,7 @@ export default function GameEntryPage() {
     }
 
     reconnect()
-  }, [isLoading, currentPlayerId, currentPlayerSecret, router])
+  }, [code, isLoading, currentPlayerId, currentPlayerSecret, router])
 
   useEffect(() => {
     if (reconnecting) return
@@ -58,9 +60,9 @@ export default function GameEntryPage() {
     if (!currentPhase) return
     const target = PHASE_ROUTES[currentPhase]
     if (target) {
-      router.replace('./' + target)
+      router.replace(`/game/${code}/${target}`)
     }
-  }, [currentPhase, reconnecting, isError, router])
+  }, [code, currentPhase, reconnecting, isError, router])
 
   if (isLoading) {
     return (

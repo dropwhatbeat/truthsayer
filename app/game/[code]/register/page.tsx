@@ -1,12 +1,19 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { getCredentials } from '@/lib/game-context'
+
+const joinRequests = new Map<
+  string,
+  Promise<{ playerId: string; playerSecret: string }>
+>()
 
 export default function RegisterPage() {
   const params = useParams<{ code: string }>()
   const router = useRouter()
   const code = String(params.code).toUpperCase()
+  const joinAttemptedRef = useRef(false)
 
   const [name, setName] = useState('')
   const [error, setError] = useState('')
@@ -18,20 +25,41 @@ export default function RegisterPage() {
   } | null>(null)
 
   const joinRoom = useCallback(async () => {
+    if (joinAttemptedRef.current) return
+    joinAttemptedRef.current = true
+
+    const existingCreds = getCredentials(code)
+    if (existingCreds) {
+      setCredentials({
+        playerId: existingCreds.playerId,
+        playerSecret: existingCreds.playerSecret,
+      })
+      setLoading(false)
+      return
+    }
+
     try {
-      const res = await fetch(`/api/rooms/${code}/join`, { method: 'POST' })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setError(data.error || 'Failed to join room')
-        router.push('/')
-        return
+      let joinRequest = joinRequests.get(code)
+      if (!joinRequest) {
+        joinRequest = fetch(`/api/rooms/${code}/join`, { method: 'POST' }).then(async (res) => {
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}))
+            throw new Error(data.error || 'Failed to join room')
+          }
+          const data = await res.json()
+          return { playerId: data.playerId, playerSecret: data.playerSecret }
+        })
+        joinRequests.set(code, joinRequest)
       }
-      const data = await res.json()
+
+      const data = await joinRequest
       const creds = { roomCode: code, playerId: data.playerId, playerSecret: data.playerSecret }
       localStorage.setItem('bsking-player', JSON.stringify(creds))
       setCredentials({ playerId: data.playerId, playerSecret: data.playerSecret })
-    } catch {
-      setError('Network error. Please try again.')
+    } catch (error) {
+      joinRequests.delete(code)
+      setError(error instanceof Error ? error.message : 'Network error. Please try again.')
+      router.push('/')
     } finally {
       setLoading(false)
     }

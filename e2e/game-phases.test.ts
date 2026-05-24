@@ -232,8 +232,13 @@ describe('Game Phases', () => {
     it('host clicking Start Game navigates to reading phase', async () => {
       await startGame(hostPage, code)
       await waitForText(hostPage, 'Round', 15000)
+      await waitForPath(nonHostPage, `/game/${code}/reading`, 15000)
 
+      const pathname = await hostPage.evaluate(() => window.location.pathname)
+      const nonHostPathname = await nonHostPage.evaluate(() => window.location.pathname)
       const body = await hostPage.evaluate(() => document.body.innerText)
+      expect(pathname).toBe(`/game/${code}/reading`)
+      expect(nonHostPathname).toBe(`/game/${code}/reading`)
       expect(body).toMatch(/Round/i)
     })
   })

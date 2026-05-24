@@ -339,17 +339,7 @@ export async function startGame(page: Page, code: string): Promise<void> {
   await waitForPath(page, `/game/${code}/waiting`)
   await waitForButtonEnabled(page, 'Start Game')
   await clickButtonByText(page, 'Start Game', { requireEnabled: true })
-  await page.waitForFunction(
-    (roomCode: string) => {
-      const pathname = window.location.pathname
-      return (
-        pathname === `/game/${roomCode}` ||
-        pathname.includes(`/game/${roomCode}/reading`)
-      )
-    },
-    { timeout: 15000 },
-    code
-  )
+  await waitForPath(page, `/game/${code}/reading`)
 }
 
 export async function submitVote(

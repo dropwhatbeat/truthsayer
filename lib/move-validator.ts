@@ -1,26 +1,24 @@
-import { gameMachine } from '@bsking/game-engine'
-import type { GameContext } from '@bsking/game-engine'
-
-type RoomPhase = 'lobby' | 'waiting' | 'reading' | 'discuss' | 'reveal' | 'finished'
+type RoomPhase = 'waiting' | 'reading' | 'voting' | 'reveal' | 'end'
+type MoveType = 'submit_description' | 'ready_to_vote' | 'cast_vote' | 'next_round'
 
 /**
- * Valid move types per game phase.
- * This mirrors the gameMachine state transitions and serves as
- * server-side validation without needing to hydrate the full machine.
+ * The app only persists these room phases today. Keep this table aligned with
+ * the values returned by GET /api/rooms/[code].
  */
-const VALID_MOVES: Record<string, string[]> = {
-  lobby: [],
-  waiting: ['submit_description'],
-  reading: ['submit_description'],
-  discuss: ['cast_vote'],
+const VALID_MOVES: Record<RoomPhase, MoveType[]> = {
+  waiting: [],
+  reading: ['ready_to_vote'],
+  voting: ['cast_vote'],
   reveal: ['next_round'],
-  finished: [],
+  end: [],
 }
 
-/**
- * Validates whether a move type is allowed given the current game phase.
- * Returns { valid: true } if allowed, { valid: false, error } otherwise.
- */
+const NEXT_PHASES: Record<'reading' | 'voting' | 'reveal', Record<MoveType, RoomPhase>> = {
+  reading: { ready_to_vote: 'voting', submit_description: 'reading', cast_vote: 'reading', next_round: 'reading' },
+  voting: { cast_vote: 'reveal', submit_description: 'voting', ready_to_vote: 'voting', next_round: 'voting' },
+  reveal: { next_round: 'reading', submit_description: 'reveal', ready_to_vote: 'reveal', cast_vote: 'reveal' },
+}
+
 export function validateMove(
   currentPhase: string | null,
   moveType: string
@@ -29,37 +27,29 @@ export function validateMove(
     return { valid: false, error: 'Game has no active phase' }
   }
 
-  const allowed = VALID_MOVES[currentPhase]
-  if (!allowed) {
+  if (!(currentPhase in VALID_MOVES)) {
     return { valid: false, error: `Unknown phase: ${currentPhase}` }
   }
 
-  if (!allowed.includes(moveType)) {
+  const allowed = VALID_MOVES[currentPhase as RoomPhase]
+  if (!allowed.includes(moveType as MoveType)) {
     return {
       valid: false,
-      error: `Cannot ${moveType} in phase ${currentPhase}. Expected one of: ${allowed.join(', ')}`,
+      error: `Cannot ${moveType} in phase ${currentPhase}`,
     }
   }
 
   return { valid: true }
 }
 
-/**
- * Hydrates the expected next phase based on a move type.
- * Used for deterministic phase advancement consistent with the gameMachine.
- */
 export function getNextPhase(
   currentPhase: string | null,
   moveType: string
-): string | null {
-  const transitions: Record<string, Record<string, string>> = {
-    waiting: { submit_description: 'reading' },
-    reading: { submit_description: 'discuss' },
-    discuss: { cast_vote: 'reveal' },
-    reveal: { next_round: 'reading' },
-    finished: { next_round: 'finished' },
+): RoomPhase | null {
+  if (!currentPhase || !(currentPhase in NEXT_PHASES)) {
+    return null
   }
 
-  if (!currentPhase) return null
-  return transitions[currentPhase]?.[moveType] ?? null
+  const next = NEXT_PHASES[currentPhase as keyof typeof NEXT_PHASES]?.[moveType as MoveType]
+  return next ?? null
 }
