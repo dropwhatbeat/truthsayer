@@ -149,6 +149,11 @@ describe('Lobby & Registration', () => {
     await waitForPath(page, '/register')
 
     const stored = await getLocalStorage(page, 'bsking-player')
-    expect(stored).toBeNull()
+    expect(stored).toBeTruthy()
+
+    const parsed = JSON.parse(stored!)
+    expect(parsed.roomCode).toBe(code)
+    expect(parsed.playerId).not.toBe('invalid-id')
+    expect(parsed.playerSecret).not.toBe('invalid-secret')
   })
 })

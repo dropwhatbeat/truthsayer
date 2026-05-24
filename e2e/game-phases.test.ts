@@ -250,27 +250,27 @@ describe('Game Phases', () => {
 
     it('honest player sees card phrase AND real answer', async () => {
       const body = await honestPage.evaluate(() => document.body.innerText)
-      expect(body).toContain('Ready to Vote')
+      expect(body).toContain('Waiting for the judge to start voting')
       expect(body).toMatch(/real answer|don't show others/i)
     })
 
     it('liar does NOT see real answer', async () => {
       const body = await liarPage.evaluate(() => document.body.innerText)
-      expect(body).toContain('Ready to Vote')
+      expect(body).toContain('Waiting for the judge to start voting')
       expect(body).not.toMatch(/Your real answer/i)
     })
 
     it('judge does NOT see real answer', async () => {
       const body = await judgePage.evaluate(() => document.body.innerText)
-      expect(body).toContain('Ready to Vote')
+      expect(body).toContain('Start Voting')
       expect(body).not.toMatch(/Your real answer/i)
     })
 
-    it('clicking Ready to Vote submits move and advances phase', async () => {
-      await submitMove(honestPage, code, 'ready_to_vote')
+    it('judge can start voting and advance the phase', async () => {
+      await submitMove(judgePage, code, 'ready_to_vote')
 
-      const body = await honestPage.evaluate(() => document.body.innerText)
-      expect(body).toMatch(/Ready!|Voting/i)
+      const body = await judgePage.evaluate(() => document.body.innerText)
+      expect(body).toMatch(/Voting started|Voting/i)
     })
   })
 

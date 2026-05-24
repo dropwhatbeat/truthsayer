@@ -17,8 +17,9 @@ export default function ReadingPage() {
   const round = room.currentRound
   const role = currentPlayer?.role
   const isHonest = role === 'honest'
+  const isJudge = role === 'judge'
 
-  async function handleReady() {
+  async function handleStartVoting() {
     setError('')
     setSubmitting(true)
     try {
@@ -100,20 +101,26 @@ export default function ReadingPage() {
           </p>
         )}
 
-        {submitted ? (
-          <p className="font-inter text-sm" style={{ color: '#2dd4bf' }}>
-            Ready! Waiting for phase to advance...
-          </p>
+        {isJudge ? (
+          submitted ? (
+            <p className="font-inter text-sm" style={{ color: '#2dd4bf' }}>
+              Voting started. Waiting for phase to advance...
+            </p>
+          ) : (
+            <button
+              onClick={handleStartVoting}
+              disabled={submitting}
+              className="w-full py-4 rounded-xl font-caveat font-bold text-xl shadow-md
+                         transition-all active:scale-[0.97] disabled:opacity-50"
+              style={{ background: '#2dd4bf', color: '#0f4c4c' }}
+            >
+              {submitting ? 'Starting...' : 'Start Voting'}
+            </button>
+          )
         ) : (
-          <button
-            onClick={handleReady}
-            disabled={submitting}
-            className="w-full py-4 rounded-xl font-caveat font-bold text-xl shadow-md
-                       transition-all active:scale-[0.97] disabled:opacity-50"
-            style={{ background: '#2dd4bf', color: '#0f4c4c' }}
-          >
-            {submitting ? 'Submitting...' : 'Ready to Vote'}
-          </button>
+          <p className="font-inter text-sm" style={{ color: '#94a3b8' }}>
+            Waiting for the judge to start voting...
+          </p>
         )}
 
         {error && (

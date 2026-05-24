@@ -90,6 +90,13 @@ export async function POST(
     const moveData = parseMoveData(body.data)
 
     if (moveType === 'ready_to_vote') {
+      if (player.role !== 'judge') {
+        return NextResponse.json(
+          { error: 'Only the judge can start voting' },
+          { status: 409 }
+        )
+      }
+
       const [existingReady] = await db
         .select({ id: gameMoves.id })
         .from(gameMoves)

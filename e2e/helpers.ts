@@ -364,7 +364,7 @@ export async function submitVote(
 }
 
 /**
- * Click the "Ready to Vote" or "Next Round" or vote button,
+ * Click the reading-phase transition, "Next Round", or vote button,
  * depending on the current phase.
  */
 export async function submitMove(
@@ -374,13 +374,13 @@ export async function submitMove(
   data?: Record<string, unknown>
 ): Promise<void> {
   if (moveType === 'ready_to_vote') {
-    await clickButtonByText(page, 'Ready to Vote', { requireEnabled: true })
+    await clickButtonByText(page, 'Start Voting', { requireEnabled: true })
     await page.waitForFunction(
       (roomCode: string) => {
         const path = window.location.pathname
         return (
           path.includes(`/game/${roomCode}/voting`) ||
-          document.body?.innerText.includes('Ready! Waiting for phase to advance...') ||
+          document.body?.innerText.includes('Voting started. Waiting for phase to advance...') ||
           document.body?.innerText.includes('Voting Time')
         )
       },

@@ -13,6 +13,13 @@ import {
   waitForPath,
 } from '../helpers'
 
+interface RoomState {
+  players: Array<{
+    id: string
+    role: string | null
+  }>
+}
+
 export interface SeedGameConfig {
   playerCount: number
   targetPhase: 'waiting' | 'reading' | 'voting' | 'reveal' | 'end'
@@ -27,6 +34,32 @@ export interface SeedGameResult {
 }
 
 const PLAYER_NAMES = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Hank']
+
+async function fetchRoomState(page: Page, roomCode: string): Promise<RoomState> {
+  return page.evaluate(async (currentCode) => {
+    const res = await fetch(`/api/rooms/${currentCode}`)
+    if (!res.ok) {
+      throw new Error(`Failed to fetch room ${currentCode}: ${res.status}`)
+    }
+    return res.json() as Promise<RoomState>
+  }, roomCode)
+}
+
+async function getJudgePage(pages: Page[], credentials: PlayerCredentials[], roomCode: string): Promise<Page> {
+  const room = await fetchRoomState(pages[0], roomCode)
+  const judge = room.players.find((player) => player.role === 'judge')
+
+  if (!judge) {
+    throw new Error(`Seeded room ${roomCode} has no judge`)
+  }
+
+  const judgeIndex = credentials.findIndex((creds) => creds.playerId === judge.id)
+  if (judgeIndex === -1 || !pages[judgeIndex]) {
+    throw new Error(`Seeded room ${roomCode} has no browser page for judge`)
+  }
+
+  return pages[judgeIndex]
+}
 
 export async function seedGameState(
   page0: Page,
@@ -78,8 +111,9 @@ export async function seedGameState(
   }
 
   // Step 4: Advance to voting
-  await submitMove(page0, code, 'ready_to_vote')
-  await waitForPath(page0, `/game/${code}/voting`, 10000)
+  const judgePage = await getJudgePage(pages, credentials, code)
+  await submitMove(judgePage, code, 'ready_to_vote')
+  await waitForPath(judgePage, `/game/${code}/voting`, 10000)
 
   if (targetPhase === 'voting') {
     for (let i = 1; i < pages.length; i++) {
@@ -120,8 +154,9 @@ export async function seedGameState(
         { timeout: 10000 },
         code
       )
-      await submitMove(page0, code, 'ready_to_vote')
-      await waitForPath(page0, `/game/${code}/voting`, 10000)
+      const activeJudgePage = await getJudgePage(pages, credentials, code)
+      await submitMove(activeJudgePage, code, 'ready_to_vote')
+      await waitForPath(activeJudgePage, `/game/${code}/voting`, 10000)
       await submitMove(page0, code, 'cast_vote', {
         targetPlayerName: PLAYER_NAMES[1] || PLAYER_NAMES[0],
       })
