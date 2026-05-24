@@ -182,6 +182,7 @@ export async function POST(request: Request) {
       .set({
         status: 'playing',
         currentPhase: 'reading',
+        currentRoundNumber: 1,
         updatedAt: new Date(),
       })
       .where(eq(rooms.id, room.id))
@@ -263,6 +264,15 @@ export async function POST(request: Request) {
         createdAt: new Date(),
       })
 
+      await db
+        .update(rooms)
+        .set({
+          currentPhase: 'reading',
+          currentRoundNumber: r + 1,
+          updatedAt: new Date(),
+        })
+        .where(eq(rooms.id, room.id))
+
       // ready_to_vote
       await db.insert(gameMoves).values({
         roomId: room.id,
@@ -297,6 +307,7 @@ export async function POST(request: Request) {
       .set({
         status: 'finished',
         currentPhase: 'end',
+        currentRoundNumber: roundCount,
         updatedAt: new Date(),
       })
       .where(eq(rooms.id, room.id))

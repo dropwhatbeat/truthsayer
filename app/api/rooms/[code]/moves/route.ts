@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { rooms, players, gameRounds, gameMoves } from '@/lib/db/schema'
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { verifyPlayerToken } from '@/lib/auth'
 import { validateMove } from '@/lib/move-validator'
 
@@ -69,12 +69,19 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
-    // Get current round
+    if (!room.currentRoundNumber) {
+      return NextResponse.json({ error: 'Game has no active round' }, { status: 409 })
+    }
+
     const [currentRound] = await db
       .select()
       .from(gameRounds)
-      .where(eq(gameRounds.roomId, room.id))
-      .orderBy(desc(gameRounds.roundNumber))
+      .where(
+        and(
+          eq(gameRounds.roomId, room.id),
+          eq(gameRounds.roundNumber, room.currentRoundNumber)
+        )
+      )
       .limit(1)
 
     if (!currentRound) {
@@ -218,19 +225,28 @@ export async function POST(
         : (room.config ?? {})
 
       const roundList = await db
-        .select()
+        .select({ id: gameRounds.id })
         .from(gameRounds)
         .where(eq(gameRounds.roomId, room.id))
 
       if (currentRound.roundNumber >= (config.roundCount ?? roundList.length)) {
         await db
           .update(rooms)
-          .set({ status: 'finished', currentPhase: 'end', updatedAt: new Date() })
+          .set({
+            status: 'finished',
+            currentPhase: 'end',
+            currentRoundNumber: currentRound.roundNumber,
+            updatedAt: new Date(),
+          })
           .where(eq(rooms.id, room.id))
       } else {
         await db
           .update(rooms)
-          .set({ currentPhase: 'reading', updatedAt: new Date() })
+          .set({
+            currentPhase: 'reading',
+            currentRoundNumber: currentRound.roundNumber + 1,
+            updatedAt: new Date(),
+          })
           .where(eq(rooms.id, room.id))
       }
     } else if (moveType === 'cast_vote') {

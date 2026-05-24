@@ -33,6 +33,7 @@ describe("Schema: rooms", () => {
     expect(room.id).toBeDefined();
     expect(room.code).toBe("ABC123");
     expect(room.status).toBe("lobby"); // default
+    expect(room.currentRoundNumber).toBeNull();
     expect(room.createdAt).toBeInstanceOf(Date);
     expect(room.updatedAt).toBeInstanceOf(Date);
 

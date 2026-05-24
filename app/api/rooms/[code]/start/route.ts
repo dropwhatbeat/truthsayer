@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { rooms, players, gameRounds } from '@/lib/db/schema'
+import { rooms, players, gameRounds, gameMoves } from '@/lib/db/schema'
 import { eq, and, isNotNull } from 'drizzle-orm'
 import { prepareDeck } from '@bsking/game-engine'
 import type { DeckType } from '@bsking/game-engine'
@@ -65,6 +65,10 @@ export async function POST(
     const roundCount = config.roundCount ?? 10
     const cards = prepareDeck(deckType, roundCount)
 
+    // Reset persisted game state before starting a fresh game.
+    await db.delete(gameMoves).where(eq(gameMoves.roomId, room.id))
+    await db.delete(gameRounds).where(eq(gameRounds.roomId, room.id))
+
     // Insert game_rounds
     for (let i = 0; i < cards.length; i++) {
       await db.insert(gameRounds).values({
@@ -82,6 +86,7 @@ export async function POST(
       .set({
         status: 'playing',
         currentPhase: 'reading',
+        currentRoundNumber: 1,
         updatedAt: new Date(),
       })
       .where(eq(rooms.id, room.id))

@@ -13,6 +13,7 @@ const db = drizzle(pool)
 
 interface FixtureOptions {
   currentPhase?: 'reading' | 'voting' | 'reveal' | 'end'
+  roundCount?: number
 }
 
 interface Fixture {
@@ -42,6 +43,7 @@ beforeEach(async () => {
 async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
   const roomCode = `T${Math.random().toString(36).slice(2, 7).toUpperCase()}`
   const currentPhase = options.currentPhase ?? 'voting'
+  const roundCount = options.roundCount ?? 2
 
   const [room] = await db
     .insert(rooms)
@@ -49,7 +51,8 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
       code: roomCode,
       status: currentPhase === 'end' ? 'finished' : 'playing',
       currentPhase,
-      config: { roundCount: 2, deckType: 'absurd-truths', timerSecs: 30 },
+      currentRoundNumber: currentPhase === 'end' ? roundCount : 1,
+      config: { roundCount, deckType: 'absurd-truths', timerSecs: 30 },
       updatedAt: new Date(),
     })
     .returning({ id: rooms.id })
@@ -93,21 +96,23 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
     .set({ createdBy: judge.id, updatedAt: new Date() })
     .where(eq(rooms.id, room.id))
 
-  const [round] = await db
+  const insertedRounds = await db
     .insert(gameRounds)
-    .values({
-      roomId: room.id,
-      roundNumber: 1,
-      cardPhrase: 'Test phrase',
-      cardAnswer: 'Test answer',
-      categories: [],
-    })
+    .values(
+      Array.from({ length: roundCount }, (_, index) => ({
+        roomId: room.id,
+        roundNumber: index + 1,
+        cardPhrase: `Test phrase ${index + 1}`,
+        cardAnswer: `Test answer ${index + 1}`,
+        categories: [],
+      }))
+    )
     .returning({ id: gameRounds.id })
 
   return {
     roomCode,
     roomId: room.id,
-    roundId: round.id,
+    roundId: insertedRounds[0]!.id,
     judge: { id: judge.id, secret: judgeToken.plaintext },
     honest: { id: honest.id, secret: honestToken.plaintext },
     liar: { id: liar.id, secret: liarToken.plaintext },
@@ -226,8 +231,8 @@ describe('POST /api/rooms/[code]/moves', () => {
     const fixture = await createFixture({ currentPhase: 'reading' })
 
     const response = await postMove(fixture.roomCode, {
-      playerId: fixture.honest.id,
-      playerSecret: fixture.honest.secret,
+      playerId: fixture.judge.id,
+      playerSecret: fixture.judge.secret,
       moveType: 'ready_to_vote',
     })
 
@@ -239,7 +244,7 @@ describe('POST /api/rooms/[code]/moves', () => {
       .where(
         and(
           eq(gameMoves.roomId, fixture.roomId),
-          eq(gameMoves.playerId, fixture.honest.id),
+          eq(gameMoves.playerId, fixture.judge.id),
           eq(gameMoves.roundId, fixture.roundId),
           eq(gameMoves.moveType, 'ready_to_vote')
         )
@@ -254,5 +259,26 @@ describe('POST /api/rooms/[code]/moves', () => {
       .limit(1)
 
     expect(room?.currentPhase).toBe('voting')
+  })
+
+  it('advances to the next round instead of ending after round one', async () => {
+    const fixture = await createFixture({ currentPhase: 'reveal', roundCount: 2 })
+
+    const response = await postMove(fixture.roomCode, {
+      playerId: fixture.judge.id,
+      playerSecret: fixture.judge.secret,
+      moveType: 'next_round',
+    })
+
+    expect(response.status).toBe(200)
+
+    const [room] = await db
+      .select({ status: rooms.status, currentPhase: rooms.currentPhase })
+      .from(rooms)
+      .where(eq(rooms.id, fixture.roomId))
+      .limit(1)
+
+    expect(room?.status).toBe('playing')
+    expect(room?.currentPhase).toBe('reading')
   })
 })

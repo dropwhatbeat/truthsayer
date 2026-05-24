@@ -38,18 +38,24 @@ export async function GET(
     let scores: Record<string, number> = {}
     playerList.forEach((p) => { scores[p.id] = 0 })
 
-    if (room.status === 'playing') {
+    if (room.currentRoundNumber) {
       const [round] = await db
         .select({
+          id: gameRounds.id,
           roundNumber: gameRounds.roundNumber,
           cardPhrase: gameRounds.cardPhrase,
           cardAnswer: gameRounds.cardAnswer,
           categories: gameRounds.categories,
         })
         .from(gameRounds)
-        .where(eq(gameRounds.roomId, room.id))
-        .orderBy(desc(gameRounds.roundNumber))
+        .where(
+          and(
+            eq(gameRounds.roomId, room.id),
+            eq(gameRounds.roundNumber, room.currentRoundNumber)
+          )
+        )
         .limit(1)
+
       if (round) {
         currentRound = {
           roundNumber: round.roundNumber,
@@ -57,28 +63,28 @@ export async function GET(
           cardAnswer: round.cardAnswer,
           categories: round.categories,
         }
-      }
-
-      // Get the latest cast_vote move
-      const [vote] = await db
-        .select()
-        .from(gameMoves)
-        .where(
-          and(
-            eq(gameMoves.roomId, room.id),
-            eq(gameMoves.moveType, 'cast_vote')
+        // Get the latest cast_vote move for the active round.
+        const [vote] = await db
+          .select()
+          .from(gameMoves)
+          .where(
+            and(
+              eq(gameMoves.roomId, room.id),
+              eq(gameMoves.moveType, 'cast_vote'),
+              eq(gameMoves.roundId, round.id)
+            )
           )
-        )
-        .orderBy(desc(gameMoves.createdAt))
-        .limit(1)
+          .orderBy(desc(gameMoves.createdAt))
+          .limit(1)
 
-      if (vote) {
-        const voteData = typeof vote.data === 'string'
-          ? JSON.parse(vote.data)
-          : (vote.data ?? {})
-        lastVote = {
-          voterId: vote.playerId,
-          targetPlayerId: voteData.targetPlayerId ?? '',
+        if (vote) {
+          const voteData = typeof vote.data === 'string'
+            ? JSON.parse(vote.data)
+            : (vote.data ?? {})
+          lastVote = {
+            voterId: vote.playerId,
+            targetPlayerId: voteData.targetPlayerId ?? '',
+          }
         }
       }
     }
@@ -117,6 +123,7 @@ export async function GET(
       code: room.code,
       status: room.status,
       currentPhase: room.currentPhase,
+      currentRoundNumber: room.currentRoundNumber,
       createdBy: room.createdBy,
       config,
       currentRound,

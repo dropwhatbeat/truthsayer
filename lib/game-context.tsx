@@ -15,6 +15,7 @@ export interface RoomState {
   code: string
   status: string
   currentPhase: string | null
+  currentRoundNumber: number | null
   createdBy: string | null
   config: {
     deckType: string

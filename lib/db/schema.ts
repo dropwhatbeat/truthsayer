@@ -18,6 +18,7 @@ export const rooms = pgTable(
     code: text("code").notNull(),
     status: text("status").notNull().default("lobby"),
     currentPhase: text("current_phase"),
+    currentRoundNumber: integer("current_round_number"),
     deckType: text("deck_type"),
     config: json("config"),
     createdBy: uuid("created_by"),
