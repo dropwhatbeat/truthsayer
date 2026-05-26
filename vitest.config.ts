@@ -6,6 +6,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     exclude: ['e2e/**', 'node_modules/**', '.opencode/**'],
+    fileParallelism: false,
   },
   resolve: {
     alias: {

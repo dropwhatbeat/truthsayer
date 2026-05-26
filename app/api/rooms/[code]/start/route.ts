@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { rooms, players, gameRounds, gameMoves } from '@/lib/db/schema'
-import { eq, and, isNotNull } from 'drizzle-orm'
+import { eq, and, isNotNull, asc } from 'drizzle-orm'
 import { prepareDeck } from '@bsking/game-engine'
 import type { DeckType } from '@bsking/game-engine'
+import { getRoundRoles } from '@/lib/round-roles'
+import { verifyPlayerToken } from '@/lib/auth'
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ code: string }> }
 ) {
   try {
@@ -22,6 +24,43 @@ export async function POST(
       return NextResponse.json({ error: 'Room not found' }, { status: 404 })
     }
 
+    let body: { playerId?: string; playerSecret?: string }
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    if (!body.playerId || !body.playerSecret) {
+      return NextResponse.json(
+        { error: 'Missing playerId or playerSecret' },
+        { status: 400 }
+      )
+    }
+
+    const [player] = await db
+      .select()
+      .from(players)
+      .where(
+        and(
+          eq(players.id, body.playerId),
+          eq(players.roomId, room.id)
+        )
+      )
+      .limit(1)
+
+    if (!player) {
+      return NextResponse.json({ error: 'Player not found in this room' }, { status: 404 })
+    }
+
+    if (!player.secretHash || !verifyPlayerToken(body.playerSecret, player.secretHash)) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+    }
+
+    if (room.createdBy !== player.id) {
+      return NextResponse.json({ error: 'Only the host can start the game' }, { status: 403 })
+    }
+
     if (room.status !== 'lobby' && room.status !== 'finished') {
       return NextResponse.json({ error: 'Game already started' }, { status: 409 })
     }
@@ -30,6 +69,7 @@ export async function POST(
       .select()
       .from(players)
       .where(and(eq(players.roomId, room.id), isNotNull(players.name)))
+      .orderBy(asc(players.createdAt), asc(players.id))
 
     if (playerList.length < 3) {
       return NextResponse.json(
@@ -38,23 +78,22 @@ export async function POST(
       )
     }
 
-    // Assign roles: first = judge, second = honest, rest = liars
-    const shuffled = [...playerList].sort(() => Math.random() - 0.5)
+    const roundOneRoles = getRoundRoles(playerList, 1)
     await db
       .update(players)
       .set({ role: 'judge' })
-      .where(eq(players.id, shuffled[0].id))
+      .where(eq(players.id, roundOneRoles.judgePlayerId))
 
     await db
       .update(players)
       .set({ role: 'honest' })
-      .where(eq(players.id, shuffled[1].id))
+      .where(eq(players.id, roundOneRoles.honestPlayerId))
 
-    for (let i = 2; i < shuffled.length; i++) {
+    for (const liarPlayerId of roundOneRoles.liarPlayerIds) {
       await db
         .update(players)
         .set({ role: 'liar' })
-        .where(eq(players.id, shuffled[i].id))
+        .where(eq(players.id, liarPlayerId))
     }
 
     // Prepare deck
@@ -71,9 +110,13 @@ export async function POST(
 
     // Insert game_rounds
     for (let i = 0; i < cards.length; i++) {
+      const roundNumber = i + 1
+      const roundRoles = getRoundRoles(playerList, roundNumber)
       await db.insert(gameRounds).values({
         roomId: room.id,
-        roundNumber: i + 1,
+        roundNumber,
+        judgePlayerId: roundRoles.judgePlayerId,
+        honestPlayerId: roundRoles.honestPlayerId,
         cardPhrase: cards[i].phrase,
         cardAnswer: cards[i].answer,
         categories: cards[i].categories ?? [],
