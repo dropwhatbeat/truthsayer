@@ -1,7 +1,32 @@
 import "dotenv/config";
+import { randomBytes } from "crypto";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { rooms, players, gameRounds, gameMoves } from "./schema";
+import { prepareDeck } from "@bsking/game-engine";
+import type { DeckType } from "@bsking/game-engine";
+import { generatePlayerToken } from "@/lib/auth";
+import { getRoundRoles } from "@/lib/round-roles";
+import { gameRounds, players, rooms } from "./schema";
+
+const DEFAULT_PLAYER_NAMES = [
+  "Host",
+  "Alice",
+  "Bob",
+  "Charlie",
+  "Diana",
+  "Eve",
+  "Frank",
+];
+
+function generateCode(): string {
+  return randomBytes(4)
+    .toString("base64url")
+    .replace(/[-_]/g, "")
+    .slice(0, 6)
+    .toUpperCase()
+    .padEnd(6, "0");
+}
 
 async function main() {
   const pool = new Pool({
@@ -10,96 +35,124 @@ async function main() {
 
   const db = drizzle(pool);
 
-  console.log("Seeding database...");
+  const deckType: DeckType = "absurd-truths";
+  const roundCount = 5;
+  const timerSecs = 30;
+  const playerNames = DEFAULT_PLAYER_NAMES.slice(0, 7);
 
-  // Clean existing data (order matters due to FK constraints)
-  await db.delete(gameMoves);
-  await db.delete(gameRounds);
-  await db.delete(players);
-  await db.delete(rooms);
+  console.log("Seeding one playable room...");
 
-  // Create a test room
+  let code = generateCode();
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const existing = await db
+      .select({ id: rooms.id })
+      .from(rooms)
+      .where(eq(rooms.code, code))
+      .limit(1);
+
+    if (existing.length === 0) {
+      break;
+    }
+
+    code = generateCode();
+  }
+
   const [room] = await db
     .insert(rooms)
     .values({
-      code: "TEST01",
+      code,
       status: "playing",
-      currentPhase: "description",
-      deckType: "standard",
-      config: { rounds: 5, timer: 60 },
+      currentPhase: "reading",
+      currentRoundNumber: 1,
+      deckType,
+      config: { deckType, roundCount, timerSecs },
+      updatedAt: new Date(),
     })
-    .returning();
+    .returning({ id: rooms.id, code: rooms.code });
 
-  console.log(`Created room: ${room.id} (${room.code})`);
+  const seededPlayers: Array<{
+    id: string;
+    name: string;
+    secret: string;
+  }> = [];
 
-  // Create 3 players: judge, honest, liar
-  const [judge] = await db
-    .insert(players)
-    .values({
+  for (const name of playerNames) {
+    const token = generatePlayerToken();
+    const [player] = await db
+      .insert(players)
+      .values({
+        roomId: room.id,
+        name,
+        secretHash: token.hash,
+      })
+      .returning({ id: players.id });
+
+    seededPlayers.push({
+      id: player.id,
+      name,
+      secret: token.plaintext,
+    });
+  }
+
+  await db
+    .update(rooms)
+    .set({
+      createdBy: seededPlayers[0]!.id,
+      updatedAt: new Date(),
+    })
+    .where(eq(rooms.id, room.id));
+
+  const roundOneRoles = getRoundRoles(seededPlayers, 1);
+
+  await db
+    .update(players)
+    .set({ role: "judge" })
+    .where(eq(players.id, roundOneRoles.judgePlayerId));
+
+  await db
+    .update(players)
+    .set({ role: "honest" })
+    .where(eq(players.id, roundOneRoles.honestPlayerId));
+
+  for (const liarPlayerId of roundOneRoles.liarPlayerIds) {
+    await db
+      .update(players)
+      .set({ role: "liar" })
+      .where(eq(players.id, liarPlayerId));
+  }
+
+  const cards = prepareDeck(deckType, roundCount);
+
+  for (let index = 0; index < cards.length; index++) {
+    const roundNumber = index + 1;
+    const roundRoles = getRoundRoles(seededPlayers, roundNumber);
+
+    await db.insert(gameRounds).values({
       roomId: room.id,
-      name: "Judge Judy",
-      role: "judge",
-      secretHash: "$2b$10$placeholder_hash_judge",
-    })
-    .returning();
+      roundNumber,
+      judgePlayerId: roundRoles.judgePlayerId,
+      honestPlayerId: roundRoles.honestPlayerId,
+      cardPhrase: cards[index]!.phrase,
+      cardAnswer: cards[index]!.answer,
+      categories: cards[index]!.categories ?? [],
+    });
+  }
 
-  const [honest] = await db
-    .insert(players)
-    .values({
-      roomId: room.id,
-      name: "Honest Abe",
-      role: "honest",
-      secretHash: "$2b$10$placeholder_hash_honest",
-    })
-    .returning();
+  console.log(`Created room: ${room.code}`);
+  console.log("Share these credentials if you want to skip manual registration:");
 
-  const [liar] = await db
-    .insert(players)
-    .values({
-      roomId: room.id,
-      name: "Lying Larry",
-      role: "liar",
-      secretHash: "$2b$10$placeholder_hash_liar",
-    })
-    .returning();
-
-  console.log(`Created players: judge=${judge.id}, honest=${honest.id}, liar=${liar.id}`);
-
-  // Create 2 rounds
-  const [round1] = await db
-    .insert(gameRounds)
-    .values({
-      roomId: room.id,
-      roundNumber: 1,
-      cardPhrase: "A suspiciously specific denial",
-      cardAnswer: "I did not have sexual relations with that woman",
-      categories: ["politics", "denial"],
-    })
-    .returning();
-
-  const [round2] = await db
-    .insert(gameRounds)
-    .values({
-      roomId: room.id,
-      roundNumber: 2,
-      cardPhrase: "The worst thing to say at a wedding toast",
-      cardAnswer: "I always knew they'd get divorced",
-      categories: ["weddings", "social"],
-    })
-    .returning();
-
-  console.log(`Created rounds: ${round1.id}, ${round2.id}`);
-
-  // Add a sample move
-  await db.insert(gameMoves).values({
-    roomId: room.id,
-    playerId: honest.id,
-    roundId: round1.id,
-    moveType: "submit_description",
-    data: { description: "A famous political scandal quote" },
-  });
-
-  console.log("Seed complete.");
+  for (const [index, player] of seededPlayers.entries()) {
+    const label = index === 0 ? `${player.name} (host)` : player.name;
+    console.log(
+      JSON.stringify({
+        player: label,
+        roomCode: room.code,
+        playerId: player.id,
+        playerSecret: player.secret,
+      })
+    );
+  }
 
   await pool.end();
 }
