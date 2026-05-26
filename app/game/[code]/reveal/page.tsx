@@ -15,8 +15,8 @@ export default function RevealPage() {
 
   const round = room.currentRound
   const vote = room.lastVote
-  const honestPlayer = room.players.find((p) => p.role === 'honest')
-  const judgePlayer = room.players.find((p) => p.role === 'judge')
+  const honestPlayer = room.players.find((p) => p.id === round?.honestPlayerId)
+  const judgePlayer = room.players.find((p) => p.id === round?.judgePlayerId)
   const votedFor = vote?.targetPlayerId
     ? room.players.find((p) => p.id === vote.targetPlayerId)
     : null

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { rooms, players, gameRounds, gameMoves } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, asc } from 'drizzle-orm'
 import { verifyPlayerToken } from '@/lib/auth'
 import { validateMove } from '@/lib/move-validator'
+import { getRoundRoles } from '@/lib/round-roles'
 
 type MoveType = 'submit_description' | 'cast_vote' | 'next_round' | 'ready_to_vote'
 
@@ -240,6 +241,31 @@ export async function POST(
           })
           .where(eq(rooms.id, room.id))
       } else {
+        const playerList = await db
+          .select({ id: players.id })
+          .from(players)
+          .where(eq(players.roomId, room.id))
+          .orderBy(asc(players.createdAt), asc(players.id))
+
+        const nextRoundRoles = getRoundRoles(playerList, currentRound.roundNumber + 1)
+
+        await db
+          .update(players)
+          .set({ role: 'judge' })
+          .where(eq(players.id, nextRoundRoles.judgePlayerId))
+
+        await db
+          .update(players)
+          .set({ role: 'honest' })
+          .where(eq(players.id, nextRoundRoles.honestPlayerId))
+
+        for (const liarPlayerId of nextRoundRoles.liarPlayerIds) {
+          await db
+            .update(players)
+            .set({ role: 'liar' })
+            .where(eq(players.id, liarPlayerId))
+        }
+
         await db
           .update(rooms)
           .set({

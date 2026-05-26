@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { rooms, players, gameRounds, gameMoves } from '@/lib/db/schema'
-import { eq, desc, and } from 'drizzle-orm'
+import { eq, desc, and, inArray } from 'drizzle-orm'
 
 export async function GET(
   _request: Request,
@@ -43,6 +43,8 @@ export async function GET(
         .select({
           id: gameRounds.id,
           roundNumber: gameRounds.roundNumber,
+          judgePlayerId: gameRounds.judgePlayerId,
+          honestPlayerId: gameRounds.honestPlayerId,
           cardPhrase: gameRounds.cardPhrase,
           cardAnswer: gameRounds.cardAnswer,
           categories: gameRounds.categories,
@@ -59,6 +61,8 @@ export async function GET(
       if (round) {
         currentRound = {
           roundNumber: round.roundNumber,
+          judgePlayerId: round.judgePlayerId,
+          honestPlayerId: round.honestPlayerId,
           cardPhrase: round.cardPhrase,
           cardAnswer: round.cardAnswer,
           categories: round.categories,
@@ -101,20 +105,39 @@ export async function GET(
       )
       .orderBy(desc(gameMoves.createdAt))
 
-    const honestPlayer = playerList.find((p) => p.role === 'honest')
-    const judgePlayer = playerList.find((p) => p.role === 'judge')
+    const roundIds = Array.from(new Set(votes.map((vote) => vote.roundId)))
+    const roundAssignments = roundIds.length === 0
+      ? []
+      : await db
+        .select({
+          id: gameRounds.id,
+          judgePlayerId: gameRounds.judgePlayerId,
+          honestPlayerId: gameRounds.honestPlayerId,
+        })
+        .from(gameRounds)
+        .where(inArray(gameRounds.id, roundIds))
 
-    if (honestPlayer && judgePlayer) {
-      for (const vote of votes) {
-        const voteData = typeof vote.data === 'string'
-          ? JSON.parse(vote.data)
-          : (vote.data ?? {})
-        const targetId = voteData.targetPlayerId ?? ''
-        if (targetId === honestPlayer.id) {
-          scores[judgePlayer.id] = (scores[judgePlayer.id] || 0) + 1
-        } else {
-          scores[honestPlayer.id] = (scores[honestPlayer.id] || 0) + 1
-        }
+    const roundAssignmentById = new Map(
+      roundAssignments.map((round) => [round.id, round])
+    )
+
+    for (const vote of votes) {
+      const voteData = typeof vote.data === 'string'
+        ? JSON.parse(vote.data)
+        : (vote.data ?? {})
+      const targetId = voteData.targetPlayerId ?? ''
+      const roundAssignment = roundAssignmentById.get(vote.roundId)
+      const judgePlayerId = roundAssignment?.judgePlayerId ?? vote.playerId
+      const honestPlayerId = roundAssignment?.honestPlayerId
+
+      if (!honestPlayerId) {
+        continue
+      }
+
+      if (targetId === honestPlayerId) {
+        scores[judgePlayerId] = (scores[judgePlayerId] || 0) + 1
+      } else {
+        scores[honestPlayerId] = (scores[honestPlayerId] || 0) + 1
       }
     }
 

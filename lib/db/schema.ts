@@ -47,6 +47,12 @@ export const gameRounds = pgTable("game_rounds", {
     .notNull()
     .references(() => rooms.id, { onDelete: "cascade" }),
   roundNumber: integer("round_number").notNull(),
+  judgePlayerId: uuid("judge_player_id").references(() => players.id, {
+    onDelete: "set null",
+  }),
+  honestPlayerId: uuid("honest_player_id").references(() => players.id, {
+    onDelete: "set null",
+  }),
   cardPhrase: text("card_phrase"),
   cardAnswer: text("card_answer"),
   categories: jsonb("categories"),

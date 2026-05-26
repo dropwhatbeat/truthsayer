@@ -24,6 +24,8 @@ export interface RoomState {
   }
   currentRound: {
     roundNumber: number
+    judgePlayerId: string | null
+    honestPlayerId: string | null
     cardPhrase: string | null
     cardAnswer: string | null
     categories: { emoji: string; label: string }[] | null

@@ -141,6 +141,8 @@ describe("Schema: game_rounds", () => {
       .values({
         roomId,
         roundNumber: 1,
+        judgePlayerId: null,
+        honestPlayerId: null,
         cardPhrase: "Test phrase",
         cardAnswer: "Test answer",
         categories: ["test", "example"],
@@ -150,6 +152,8 @@ describe("Schema: game_rounds", () => {
     expect(round.id).toBeDefined();
     expect(round.roomId).toBe(roomId);
     expect(round.roundNumber).toBe(1);
+    expect(round.judgePlayerId).toBeNull();
+    expect(round.honestPlayerId).toBeNull();
     expect(round.cardPhrase).toBe("Test phrase");
     expect(round.cardAnswer).toBe("Test answer");
     expect(round.categories).toEqual(["test", "example"]);

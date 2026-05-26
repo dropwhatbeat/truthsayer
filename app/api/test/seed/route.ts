@@ -3,9 +3,10 @@ import { randomBytes } from 'crypto'
 import bcrypt from 'bcrypt'
 import { db } from '@/lib/db'
 import { rooms, players, gameRounds, gameMoves } from '@/lib/db/schema'
-import { eq, asc } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { prepareDeck } from '@bsking/game-engine'
 import type { DeckType } from '@bsking/game-engine'
+import { getRoundRoles } from '@/lib/round-roles'
 
 const SALT_ROUNDS = 10
 
@@ -137,24 +138,24 @@ export async function POST(request: Request) {
       })
     }
 
-    // Start the game: assign roles
-    const shuffled = [...playerData].sort(() => Math.random() - 0.5)
+    // Start the game: assign round-one roles
+    const roundOneRoles = getRoundRoles(playerData, 1)
 
     await db
       .update(players)
       .set({ role: 'judge' })
-      .where(eq(players.id, shuffled[0].id))
+      .where(eq(players.id, roundOneRoles.judgePlayerId))
 
     await db
       .update(players)
       .set({ role: 'honest' })
-      .where(eq(players.id, shuffled[1].id))
+      .where(eq(players.id, roundOneRoles.honestPlayerId))
 
-    for (let i = 2; i < shuffled.length; i++) {
+    for (const liarPlayerId of roundOneRoles.liarPlayerIds) {
       await db
         .update(players)
         .set({ role: 'liar' })
-        .where(eq(players.id, shuffled[i].id))
+        .where(eq(players.id, liarPlayerId))
     }
 
     // Insert rounds
@@ -162,11 +163,15 @@ export async function POST(request: Request) {
     const roundIds: string[] = []
 
     for (let i = 0; i < cards.length; i++) {
+      const roundNumber = i + 1
+      const roundRoles = getRoundRoles(playerData, roundNumber)
       const [r] = await db
         .insert(gameRounds)
         .values({
           roomId: room.id,
-          roundNumber: i + 1,
+          roundNumber,
+          judgePlayerId: roundRoles.judgePlayerId,
+          honestPlayerId: roundRoles.honestPlayerId,
           cardPhrase: cards[i].phrase,
           cardAnswer: cards[i].answer,
           categories: cards[i].categories ?? [],
@@ -202,7 +207,7 @@ export async function POST(request: Request) {
     const round1Id = roundIds[0]
     await db.insert(gameMoves).values({
       roomId: room.id,
-      playerId: playerData[0].id,
+      playerId: roundOneRoles.judgePlayerId,
       roundId: round1Id,
       moveType: 'ready_to_vote',
       createdAt: new Date(),
@@ -227,10 +232,10 @@ export async function POST(request: Request) {
     // Advance to reveal: insert cast_vote move
     await db.insert(gameMoves).values({
       roomId: room.id,
-      playerId: playerData[0].id,
+      playerId: roundOneRoles.judgePlayerId,
       roundId: round1Id,
       moveType: 'cast_vote',
-      data: { targetPlayerId: playerData[1].id },
+      data: { targetPlayerId: roundOneRoles.honestPlayerId },
       createdAt: new Date(),
     })
 
@@ -254,11 +259,13 @@ export async function POST(request: Request) {
     for (let r = 1; r < roundCount; r++) {
       const roundId = roundIds[r]
       if (!roundId) break
+      const priorRoundRoles = getRoundRoles(playerData, r)
+      const nextRoundRoles = getRoundRoles(playerData, r + 1)
 
       // next_round to advance to reading
       await db.insert(gameMoves).values({
         roomId: room.id,
-        playerId: playerData[0].id,
+        playerId: priorRoundRoles.judgePlayerId,
         roundId: roundIds[r - 1],
         moveType: 'next_round',
         createdAt: new Date(),
@@ -273,10 +280,27 @@ export async function POST(request: Request) {
         })
         .where(eq(rooms.id, room.id))
 
+      await db
+        .update(players)
+        .set({ role: 'judge' })
+        .where(eq(players.id, nextRoundRoles.judgePlayerId))
+
+      await db
+        .update(players)
+        .set({ role: 'honest' })
+        .where(eq(players.id, nextRoundRoles.honestPlayerId))
+
+      for (const liarPlayerId of nextRoundRoles.liarPlayerIds) {
+        await db
+          .update(players)
+          .set({ role: 'liar' })
+          .where(eq(players.id, liarPlayerId))
+      }
+
       // ready_to_vote
       await db.insert(gameMoves).values({
         roomId: room.id,
-        playerId: playerData[0].id,
+        playerId: nextRoundRoles.judgePlayerId,
         roundId,
         moveType: 'ready_to_vote',
         createdAt: new Date(),
@@ -285,18 +309,19 @@ export async function POST(request: Request) {
       // cast_vote
       await db.insert(gameMoves).values({
         roomId: room.id,
-        playerId: playerData[0].id,
+        playerId: nextRoundRoles.judgePlayerId,
         roundId,
         moveType: 'cast_vote',
-        data: { targetPlayerId: playerData[1].id },
+        data: { targetPlayerId: nextRoundRoles.honestPlayerId },
         createdAt: new Date(),
       })
     }
 
     // Last next_round to trigger end
+    const lastRoundRoles = getRoundRoles(playerData, roundCount)
     await db.insert(gameMoves).values({
       roomId: room.id,
-      playerId: playerData[0].id,
+      playerId: lastRoundRoles.judgePlayerId,
       roundId: roundIds[roundIds.length - 1],
       moveType: 'next_round',
       createdAt: new Date(),

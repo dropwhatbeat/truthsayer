@@ -7,6 +7,7 @@ import { and, eq } from 'drizzle-orm'
 import { POST } from '@/app/api/rooms/[code]/moves/route'
 import { generatePlayerToken } from '@/lib/auth'
 import { gameMoves, gameRounds, players, rooms } from '@/lib/db/schema'
+import { getRoundRoles } from '@/lib/round-roles'
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const db = drizzle(pool)
@@ -98,15 +99,23 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
 
   const insertedRounds = await db
     .insert(gameRounds)
-    .values(
-      Array.from({ length: roundCount }, (_, index) => ({
+    .values(Array.from({ length: roundCount }, (_, index) => {
+      const roundNumber = index + 1
+      const roundRoles = getRoundRoles(
+        [{ id: judge.id }, { id: honest.id }, { id: liar.id }],
+        roundNumber
+      )
+
+      return {
         roomId: room.id,
-        roundNumber: index + 1,
-        cardPhrase: `Test phrase ${index + 1}`,
-        cardAnswer: `Test answer ${index + 1}`,
+        roundNumber,
+        judgePlayerId: roundRoles.judgePlayerId,
+        honestPlayerId: roundRoles.honestPlayerId,
+        cardPhrase: `Test phrase ${roundNumber}`,
+        cardAnswer: `Test answer ${roundNumber}`,
         categories: [],
-      }))
-    )
+      }
+    }))
     .returning({ id: gameRounds.id })
 
   return {
@@ -280,5 +289,30 @@ describe('POST /api/rooms/[code]/moves', () => {
 
     expect(room?.status).toBe('playing')
     expect(room?.currentPhase).toBe('reading')
+  })
+
+  it('rotates the judge and honest player when advancing rounds', async () => {
+    const fixture = await createFixture({ currentPhase: 'reveal', roundCount: 3 })
+
+    const response = await postMove(fixture.roomCode, {
+      playerId: fixture.judge.id,
+      playerSecret: fixture.judge.secret,
+      moveType: 'next_round',
+    })
+
+    expect(response.status).toBe(200)
+
+    const playerList = await db
+      .select({ id: players.id, role: players.role })
+      .from(players)
+      .where(eq(players.roomId, fixture.roomId))
+
+    const judgePlayer = playerList.find((player) => player.role === 'judge')
+    const honestPlayer = playerList.find((player) => player.role === 'honest')
+    const liarPlayers = playerList.filter((player) => player.role === 'liar')
+
+    expect(judgePlayer?.id).toBe(fixture.honest.id)
+    expect(honestPlayer?.id).toBe(fixture.liar.id)
+    expect(liarPlayers.map((player) => player.id)).toEqual([fixture.judge.id])
   })
 })
