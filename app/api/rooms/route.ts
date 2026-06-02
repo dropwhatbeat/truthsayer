@@ -4,6 +4,8 @@ import { rooms } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { randomBytes } from 'crypto'
 
+export const runtime = 'nodejs'
+
 function generateCode(): string {
   return randomBytes(4)
     .toString('base64url')

@@ -3,6 +3,8 @@ import { db } from '@/lib/db'
 import { rooms, players, gameRounds, gameMoves } from '@/lib/db/schema'
 import { eq, desc, and, inArray } from 'drizzle-orm'
 
+export const runtime = 'nodejs'
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ code: string }> }
