@@ -8,6 +8,8 @@ import { prepareDeck } from '@bsking/game-engine'
 import type { DeckType } from '@bsking/game-engine'
 import { getRoundRoles } from '@/lib/round-roles'
 
+export const runtime = 'nodejs'
+
 const SALT_ROUNDS = 10
 
 function generateCode(): string {

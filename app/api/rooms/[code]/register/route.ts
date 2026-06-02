@@ -4,6 +4,8 @@ import { rooms, players } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { verifyPlayerToken } from '@/lib/auth'
 
+export const runtime = 'nodejs'
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ code: string }> }

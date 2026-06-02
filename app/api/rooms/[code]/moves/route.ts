@@ -6,6 +6,8 @@ import { verifyPlayerToken } from '@/lib/auth'
 import { validateMove } from '@/lib/move-validator'
 import { getRoundRoles } from '@/lib/round-roles'
 
+export const runtime = 'nodejs'
+
 type MoveType = 'submit_description' | 'cast_vote' | 'next_round' | 'ready_to_vote'
 
 function parseMoveData(data: unknown): Record<string, unknown> {

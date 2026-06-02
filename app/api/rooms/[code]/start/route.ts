@@ -7,6 +7,8 @@ import type { DeckType } from '@bsking/game-engine'
 import { getRoundRoles } from '@/lib/round-roles'
 import { verifyPlayerToken } from '@/lib/auth'
 
+export const runtime = 'nodejs'
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ code: string }> }
