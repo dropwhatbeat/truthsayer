@@ -1,34 +1,40 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect } from 'react'
+import { useSelector } from '@xstate/react'
 import { usePostHog } from 'posthog-js/react'
-import type { Card } from '@/data/absurdTruthsDeck'
+import type { Card } from '@bsking/game-engine'
+import type { ActorRefFrom } from 'xstate'
+import type { gameMachine } from '@bsking/game-engine'
+import Timer from './Timer'
+import WordCard from './WordCard'
+import CategoryPills from './CategoryPills'
 
-export type Phase = 'waiting' | 'reading' | 'discuss' | 'reveal'
+type GameActor = ActorRefFrom<typeof gameMachine>
 
 interface Props {
+  actor: GameActor
   card: Card
-  phase: Phase
   index: number
   total: number
-  timeLeft: number
-  timerSecs: number
   deckType: string
-  onShowSecret: () => void
-  onRevealToAll: () => void
-  onBack: () => void
-  onNext: () => void
-  onHome: () => void
 }
 
-const CIRCUMFERENCE = 2 * Math.PI * 45
-
-export default function GameScreen({
-  card, phase, index, total, timeLeft, timerSecs, deckType,
-  onShowSecret, onRevealToAll, onBack, onNext, onHome,
-}: Props) {
+export default function GameScreen({ actor, card, index, total, deckType }: Props) {
   const posthog = usePostHog()
-  const pct    = ((index + 1) / total) * 100
+
+  const phase = useSelector(actor, (state) => {
+    if (state.matches({ playing: 'waiting' })) return 'waiting'
+    if (state.matches({ playing: 'reading' })) return 'reading'
+    if (state.matches({ playing: 'discuss' })) return 'discuss'
+    if (state.matches({ playing: 'reveal' })) return 'reveal'
+    return 'waiting'
+  })
+
+  const timeLeft = useSelector(actor, (state) => state.context.timeLeft)
+  const timerSecs = useSelector(actor, (state) => state.context.timerSecs)
+
+  const pct = ((index + 1) / total) * 100
   const isLast = index >= total - 1
 
   useEffect(() => {
@@ -40,22 +46,8 @@ export default function GameScreen({
     posthog.capture(event, { card_index: index + 1, phrase: card.phrase, deck_type: deckType, ...props })
   }
 
-  const shuffledCategories = useMemo(() => {
-    if (!card.categories) return []
-    const cats = [...card.categories]
-    for (let i = cats.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [cats[i], cats[j]] = [cats[j], cats[i]]
-    }
-    return cats
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [card.phrase])
-
   return (
-    /* h-screen keeps the whole game in the viewport — no page scroll */
     <div className="h-screen flex flex-col" style={{ background: '#FFFDF7' }}>
-
-      {/* Progress bar */}
       <div style={{ height: 6, background: '#ede9fe', width: '100%', flexShrink: 0 }}>
         <div
           className="progress-bar-fill"
@@ -63,9 +55,8 @@ export default function GameScreen({
         />
       </div>
 
-      {/* Top bar */}
       <div className="flex justify-between items-center px-4 md:px-8 pt-3 pb-2 shrink-0">
-        <button onClick={() => { track('game_home_clicked'); onHome() }} className="btn-press font-caveat text-lg md:text-xl" style={{ color: '#c4b5fd' }}>
+        <button onClick={() => { track('game_home_clicked'); actor.send({ type: 'END' }) }} className="btn-press font-caveat text-lg md:text-xl" style={{ color: '#c4b5fd' }}>
           ← home
         </button>
         <span className="font-caveat text-lg md:text-xl" style={{ color: '#94a3b8' }}>
@@ -73,84 +64,41 @@ export default function GameScreen({
         </span>
       </div>
 
-      {/* ── Main content: top-aligned, fills remaining height ── */}
       <div className="flex-1 min-h-0 flex flex-col px-4 md:px-8 pt-2 md:pt-4 pb-16 md:pb-24 gap-3 md:gap-4 relative overflow-hidden">
-
-        {/* Background doodle */}
         <span
           className="doodle font-caveat font-bold"
           style={{ fontSize: '20rem', color: '#a855f7', opacity: 0.03, top: '40%', left: '50%', transform: 'translate(-50%,-50%)', lineHeight: 1 }}
         >?</span>
 
-        {/* Word card — compact, sits near top */}
-        <div className="relative z-10 w-full max-w-3xl mx-auto shrink-0">
-          <div
-            className="rounded-3xl px-6 py-4 md:px-10 md:py-5 text-center shadow-sm border"
-            style={{ background: '#FFF8EE', borderColor: '#fde68a' }}
-          >
-            <p
-              className="font-caveat font-bold text-gray-900 leading-tight"
-              style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', overflowWrap: 'break-word' }}
-            >
-              {card.phrase}
-            </p>
-          </div>
-        </div>
+        <WordCard card={card} />
+        <CategoryPills categories={card.categories ?? []} />
 
-        {/* Category pills — only shown for decks that include categories */}
-        {shuffledCategories.length > 0 && (
-          <div className="relative z-10 flex flex-wrap md:flex-nowrap gap-2 md:gap-3 justify-center w-full max-w-3xl mx-auto shrink-0">
-            {shuffledCategories.map(cat => (
-              <span
-                key={cat.label}
-                className="inline-flex items-center gap-1.5 font-inter font-semibold whitespace-nowrap"
-                style={{
-                  padding: '7px 18px',
-                  borderRadius: 999,
-                  border: '2px solid #ddd6fe',
-                  background: '#f5f3ff',
-                  color: '#6d28d9',
-                  fontSize: 'clamp(0.8rem, 1.8vw, 1rem)',
-                }}
-              >
-                {cat.emoji} {cat.label}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Phase controls — flex-1 so they fill ALL remaining space */}
         <div className="relative z-10 w-full max-w-3xl mx-auto flex-1 min-h-0 flex flex-col">
-          {phase === 'waiting' && <WaitingPhase onShowSecret={() => { track('secret_shown'); onShowSecret() }} />}
+          {phase === 'waiting' && (
+            <WaitingPhase onShowSecret={() => { track('secret_shown'); actor.send({ type: 'SHOW_SECRET' }) }} />
+          )}
           {phase === 'reading' && (
-            <ReadingPhase
-              answer={card.answer}
-              timeLeft={timeLeft}
-              timerSecs={timerSecs}
-            />
+            <ReadingPhase answer={card.answer} timeLeft={timeLeft} timerSecs={timerSecs} />
           )}
           {phase === 'discuss' && (
             <DiscussPhase
-              onBack={() => { track('back_clicked', { from_phase: 'discuss' }); onBack() }}
-              onRevealToAll={() => { track('reveal_to_all_clicked'); onRevealToAll() }}
+              onBack={() => { track('back_clicked', { from_phase: 'discuss' }); actor.send({ type: 'BACK' }) }}
+              onRevealToAll={() => { track('reveal_to_all_clicked'); actor.send({ type: 'REVEAL_ALL' }) }}
             />
           )}
-          {phase === 'reveal'  && (
+          {phase === 'reveal' && (
             <RevealPhase
               answer={card.answer}
-              onBack={() => { track('back_clicked', { from_phase: 'reveal' }); onBack() }}
-              onNext={() => { track(isLast ? 'game_end_clicked' : 'next_card_clicked'); onNext() }}
+              onBack={() => { track('back_clicked', { from_phase: 'reveal' }); actor.send({ type: 'BACK' }) }}
+              onNext={() => { track(isLast ? 'game_end_clicked' : 'next_card_clicked'); actor.send({ type: 'NEXT_CARD' }) }}
               isLast={isLast}
             />
           )}
         </div>
-
       </div>
     </div>
   )
 }
-
-/* ── Phase sub-components ── */
 
 function WaitingPhase({ onShowSecret }: { onShowSecret: () => void }) {
   return (
@@ -184,21 +132,8 @@ function WaitingPhase({ onShowSecret }: { onShowSecret: () => void }) {
 }
 
 function ReadingPhase({ answer, timeLeft, timerSecs }: { answer: string; timeLeft: number; timerSecs: number }) {
-  const ringRef = useRef<SVGCircleElement>(null)
-
-  useEffect(() => {
-    if (!ringRef.current) return
-    const frac   = Math.max(0, timeLeft / timerSecs)
-    const offset = CIRCUMFERENCE * (1 - frac)
-    ringRef.current.style.strokeDashoffset = String(offset)
-    ringRef.current.style.stroke = frac > 0.5 ? '#2dd4bf' : frac > 0.2 ? '#fb923c' : '#ef4444'
-  }, [timeLeft, timerSecs])
-
   return (
-    /* flex-1 min-h-0: fills all remaining height after word card + categories */
     <div className="flex flex-col md:flex-row gap-3 md:gap-4 flex-1 min-h-0">
-
-      {/* Answer text — grows to fill available height, scrolls only if still too long */}
       <div
         className="fade-in flex-1 min-h-0 overflow-y-auto"
         style={{ border: '2px solid #ddd6fe', borderRadius: 18, padding: 'clamp(14px, 2vw, 20px) clamp(16px, 2.5vw, 24px)', background: '#FFF8EE' }}
@@ -207,31 +142,7 @@ function ReadingPhase({ answer, timeLeft, timerSecs }: { answer: string; timeLef
           {answer}
         </p>
       </div>
-
-      {/* Timer — fixed size on desktop, compact row on mobile */}
-      <div className="flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 shrink-0 md:py-2">
-        <div style={{ position: 'relative', width: 120, height: 120 }}>
-          <svg width="120" height="120" viewBox="0 0 130 130">
-            <circle cx="65" cy="65" r="45" fill="none" stroke="#e2e8f0" strokeWidth="8"/>
-            <g transform="rotate(-90 65 65)">
-              <circle
-                ref={ringRef}
-                cx="65" cy="65" r="45"
-                fill="none" stroke="#2dd4bf" strokeWidth="8" strokeLinecap="round"
-                className="timer-ring-fill"
-                style={{ strokeDasharray: CIRCUMFERENCE, strokeDashoffset: 0 }}
-              />
-            </g>
-          </svg>
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <span className="font-caveat font-bold" style={{ fontSize: '2.4rem', color: '#1e293b', lineHeight: 1 }}>
-              {Math.max(0, timeLeft)}
-            </span>
-            <span className="font-caveat" style={{ fontSize: '0.85rem', color: '#94a3b8' }}>sec</span>
-          </div>
-        </div>
-        <p className="font-caveat md:mt-1.5" style={{ color: '#94a3b8', fontSize: '1rem' }}>reading time</p>
-      </div>
+      <Timer seconds={timeLeft} total={timerSecs} />
     </div>
   )
 }
@@ -263,15 +174,12 @@ function RevealPhase({ answer, onBack, onNext, isLast }: { answer: string; onBac
   return (
     <div className="flex flex-col flex-1 min-h-0 gap-3">
       <p className="font-caveat font-bold shrink-0" style={{ fontSize: 'clamp(1rem, 2vw, 1.2rem)', color: '#2dd4bf' }}>✦ THE TRUTH:</p>
-
-      {/* Answer fills remaining height */}
       <div
         className="slide-up flex-1 min-h-0 overflow-y-auto"
         style={{ borderRadius: 18, padding: 'clamp(14px, 2vw, 20px) clamp(16px, 2.5vw, 24px)', background: '#f0fdfa', borderLeft: '5px solid #2dd4bf' }}
       >
         <p className="font-inter" style={{ color: '#374151', lineHeight: 1.75, fontSize: 'clamp(0.88rem, 1.8vw, 1.05rem)' }}>{answer}</p>
       </div>
-
       <div className="flex gap-3 shrink-0">
         <button onClick={onBack} className="btn-press font-caveat font-semibold"
           style={{ flex: 1, padding: 'clamp(14px, 2vw, 18px)', borderRadius: 14, border: '2px solid #e2e8f0', background: '#fff', fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)', color: '#64748b', cursor: 'pointer' }}>
