@@ -1,5 +1,6 @@
 export type { Card, Category, DeckType, GamePhase, Player, Role, GameConfig, RoomStatus, GameContext, GameEvent, RoundContext, RoundEvent } from './types'
-export { shuffle, getDeckByType, prepareDeck } from './deck'
+export type { DeckMetadata } from './deck'
+export { DECK_METADATA, DECK_TYPES, isDeckType, shuffle, getDeckByType, prepareDeck } from './deck'
 export { GAME_DECK } from './decks/absurdTruthsDeck'
 export { CHINESE_SAYINGS_DECK } from './decks/chineseSayingsDeck'
 export { MEDICAL_DECK } from './decks/medicalDeck'

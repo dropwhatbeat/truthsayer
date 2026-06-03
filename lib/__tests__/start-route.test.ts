@@ -7,6 +7,7 @@ import { eq } from 'drizzle-orm'
 import { POST } from '@/app/api/rooms/[code]/start/route'
 import { generatePlayerToken } from '@/lib/auth'
 import { gameMoves, gameRounds, players, rooms } from '@/lib/db/schema'
+import { getDeckByType } from '@bsking/game-engine'
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const db = drizzle(pool)
@@ -27,12 +28,25 @@ beforeEach(async () => {
 })
 
 async function createLobbyFixture() {
+  return createLobbyFixtureWithConfig({
+    roundCount: 2,
+    deckType: 'absurd-truths',
+    timerSecs: 30,
+  })
+}
+
+async function createLobbyFixtureWithConfig(config: {
+  roundCount: number
+  deckType?: string
+  timerSecs: number
+}) {
   const [room] = await db
     .insert(rooms)
     .values({
       code: 'START1',
       status: 'lobby',
-      config: { roundCount: 2, deckType: 'absurd-truths', timerSecs: 30 },
+      config,
+      deckType: config.deckType ?? null,
       updatedAt: new Date(),
     })
     .returning({ id: rooms.id })
@@ -123,5 +137,66 @@ describe('POST /api/rooms/[code]/start', () => {
     })
 
     expect(response.status).toBe(200)
+  })
+
+  it('uses the selected deck from room config', async () => {
+    const fixture = await createLobbyFixtureWithConfig({
+      roundCount: 2,
+      deckType: 'medical',
+      timerSecs: 30,
+    })
+
+    const response = await postStart(fixture.roomCode, {
+      playerId: fixture.host.id,
+      playerSecret: fixture.host.secret,
+    })
+
+    expect(response.status).toBe(200)
+
+    const insertedRounds = await db
+      .select({ cardPhrase: gameRounds.cardPhrase })
+      .from(gameRounds)
+
+    const medicalPhrases = new Set(getDeckByType('medical').map((card) => card.phrase))
+    expect(insertedRounds).toHaveLength(2)
+    expect(insertedRounds.every((round) => medicalPhrases.has(round.cardPhrase ?? ''))).toBe(true)
+  })
+
+  it('defaults to absurd-truths when no deck type was stored', async () => {
+    const fixture = await createLobbyFixtureWithConfig({
+      roundCount: 2,
+      timerSecs: 30,
+    })
+
+    const response = await postStart(fixture.roomCode, {
+      playerId: fixture.host.id,
+      playerSecret: fixture.host.secret,
+    })
+
+    expect(response.status).toBe(200)
+
+    const insertedRounds = await db
+      .select({ cardPhrase: gameRounds.cardPhrase })
+      .from(gameRounds)
+
+    const defaultPhrases = new Set(getDeckByType('absurd-truths').map((card) => card.phrase))
+    expect(insertedRounds).toHaveLength(2)
+    expect(insertedRounds.every((round) => defaultPhrases.has(round.cardPhrase ?? ''))).toBe(true)
+  })
+
+  it('rejects starting a finished room without replaying first', async () => {
+    const fixture = await createLobbyFixture()
+
+    await db
+      .update(rooms)
+      .set({ status: 'finished', currentPhase: 'end', updatedAt: new Date() })
+      .where(eq(rooms.code, fixture.roomCode))
+
+    const response = await postStart(fixture.roomCode, {
+      playerId: fixture.host.id,
+      playerSecret: fixture.host.secret,
+    })
+
+    expect(response.status).toBe(409)
   })
 })

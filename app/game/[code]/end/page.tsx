@@ -34,7 +34,7 @@ export default function EndPage() {
     setError('')
     setStarting(true)
     try {
-      const res = await fetch(`/api/rooms/${room!.code}/start`, {
+      const res = await fetch(`/api/rooms/${room!.code}/replay`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerId: currentPlayerId, playerSecret: currentPlayerSecret }),
@@ -45,10 +45,10 @@ export default function EndPage() {
           router.replace(`/game/${room!.code}`)
           return
         }
-        setError(data.error || 'Failed to start')
+        setError(data.error || 'Failed to reset room')
         return
       }
-      router.replace(`/game/${room!.code}`)
+      router.replace(`/game/${room!.code}/waiting`)
     } catch {
       setError('Network error. Please try again.')
     } finally {
@@ -111,7 +111,7 @@ export default function EndPage() {
                        transition-all active:scale-[0.97] disabled:opacity-50"
             style={{ background: '#2dd4bf', color: '#0f4c4c' }}
           >
-            {starting ? 'Starting...' : 'Play Again'}
+            {starting ? 'Resetting...' : 'Play Again'}
           </button>
         ) : (
           <p className="font-inter text-sm" style={{ color: '#94a3b8' }}>

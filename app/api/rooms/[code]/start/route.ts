@@ -63,8 +63,11 @@ export async function POST(
       return NextResponse.json({ error: 'Only the host can start the game' }, { status: 403 })
     }
 
-    if (room.status !== 'lobby' && room.status !== 'finished') {
-      return NextResponse.json({ error: 'Game already started' }, { status: 409 })
+    if (room.status !== 'lobby') {
+      return NextResponse.json(
+        { error: 'Game can only be started from the lobby' },
+        { status: 409 }
+      )
     }
 
     const playerList = await db

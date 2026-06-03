@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Page } from 'puppeteer'
+import { DECK_METADATA, getDeckByType } from '@bsking/game-engine'
 import {
   newPage,
   startGame,
@@ -18,6 +19,12 @@ import { closeBrowser } from './setup'
 
 interface RoomState {
   createdBy: string | null
+  config: {
+    deckType: string
+  }
+  currentRound: {
+    cardPhrase: string | null
+  } | null
   players: Array<{
     id: string
     name: string | null
@@ -188,7 +195,7 @@ describe('Game Phases', () => {
   describe('Waiting Room', () => {
     beforeAll(async () => {
       await setupSeededGame('waiting')
-    })
+    }, 60000)
 
     it('host sees enabled Start Game button with 3+ players', async () => {
       const body = await hostPage.evaluate(() => document.body.innerText)
@@ -229,6 +236,15 @@ describe('Game Phases', () => {
       expect(body).toContain('Waiting for host to start')
     })
 
+    it('host can change the deck and everyone sees the update', async () => {
+      await hostPage.select('select[aria-label="Choose deck"]', 'medical')
+      await waitForText(hostPage, DECK_METADATA.medical.label)
+      await waitForText(nonHostPage, DECK_METADATA.medical.label)
+
+      const hostRoom = await fetchRoomState(hostPage, code)
+      expect(hostRoom.config.deckType).toBe('medical')
+    })
+
     it('host clicking Start Game navigates to reading phase', async () => {
       await startGame(hostPage, code)
       await waitForText(hostPage, 'Round', 15000)
@@ -237,9 +253,13 @@ describe('Game Phases', () => {
       const pathname = await hostPage.evaluate(() => window.location.pathname)
       const nonHostPathname = await nonHostPage.evaluate(() => window.location.pathname)
       const body = await hostPage.evaluate(() => document.body.innerText)
+      const room = await fetchRoomState(hostPage, code)
+      const medicalPhrases = new Set(getDeckByType('medical').map((card) => card.phrase))
       expect(pathname).toBe(`/game/${code}/reading`)
       expect(nonHostPathname).toBe(`/game/${code}/reading`)
       expect(body).toMatch(/Round/i)
+      expect(room.config.deckType).toBe('medical')
+      expect(medicalPhrases.has(room.currentRound?.cardPhrase ?? '')).toBe(true)
     })
   })
 
@@ -362,7 +382,27 @@ describe('Game Phases', () => {
       expect(nonHostBody).toContain('Waiting for host')
     })
 
+    it('Play Again returns the room to the waiting room for all players', async () => {
+      await setupSeededGame('end')
+
+      await clickButtonByText(hostPage, 'Play Again', { requireEnabled: true })
+      await waitForPath(hostPage, `/game/${code}/waiting`)
+      await waitForPath(nonHostPage, `/game/${code}/waiting`)
+      await waitForText(hostPage, 'Waiting Room')
+      await waitForText(nonHostPage, 'Waiting Room')
+
+      const room = await fetchRoomState(hostPage, code)
+      expect(room.config.deckType).toBe('absurd-truths')
+
+      const hostBody = await hostPage.evaluate(() => document.body.innerText)
+      const nonHostBody = await nonHostPage.evaluate(() => document.body.innerText)
+      expect(hostBody).toContain('Start Game')
+      expect(nonHostBody).toContain('Waiting for host to start')
+    })
+
     it('Back to Lobby clears localStorage and navigates to /', async () => {
+      await setupSeededGame('end')
+
       await clickButtonByText(hostPage, 'Back to Lobby', { requireEnabled: true })
       await waitForPath(hostPage, '/')
 

@@ -3,6 +3,7 @@
 import { createContext, useContext, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
+import type { DeckType } from '@bsking/game-engine'
 
 export interface RoomPlayer {
   id: string
@@ -18,7 +19,7 @@ export interface RoomState {
   currentRoundNumber: number | null
   createdBy: string | null
   config: {
-    deckType: string
+    deckType: DeckType
     roundCount: number
     timerSecs: number
   }

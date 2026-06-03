@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { rooms, players, gameRounds, gameMoves } from '@/lib/db/schema'
 import { eq, desc, and, inArray } from 'drizzle-orm'
+import type { DeckType } from '@bsking/game-engine'
+import { isDeckType } from '@bsking/game-engine'
+import { verifyPlayerToken } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 
@@ -159,6 +162,95 @@ export async function GET(
         name: p.name,
         role: p.role,
       })),
+    })
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ code: string }> }
+) {
+  try {
+    const { code } = await params
+
+    const [room] = await db
+      .select()
+      .from(rooms)
+      .where(eq(rooms.code, code.toUpperCase()))
+      .limit(1)
+
+    if (!room) {
+      return NextResponse.json({ error: 'Room not found' }, { status: 404 })
+    }
+
+    let body: { playerId?: string; playerSecret?: string; deckType?: unknown }
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    if (!body.playerId || !body.playerSecret) {
+      return NextResponse.json(
+        { error: 'Missing playerId or playerSecret' },
+        { status: 400 }
+      )
+    }
+
+    if (!isDeckType(body.deckType)) {
+      return NextResponse.json({ error: 'Invalid deck type' }, { status: 400 })
+    }
+
+    const [player] = await db
+      .select()
+      .from(players)
+      .where(and(eq(players.id, body.playerId), eq(players.roomId, room.id)))
+      .limit(1)
+
+    if (!player) {
+      return NextResponse.json({ error: 'Player not found in this room' }, { status: 404 })
+    }
+
+    if (!player.secretHash || !verifyPlayerToken(body.playerSecret, player.secretHash)) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+    }
+
+    if (room.createdBy !== player.id) {
+      return NextResponse.json(
+        { error: 'Only the host can update the deck' },
+        { status: 403 }
+      )
+    }
+
+    if (room.status !== 'lobby') {
+      return NextResponse.json(
+        { error: 'Deck can only be updated while the room is in the lobby' },
+        { status: 409 }
+      )
+    }
+
+    const config = typeof room.config === 'string'
+      ? JSON.parse(room.config)
+      : (room.config ?? {})
+    const nextConfig = {
+      ...config,
+      deckType: body.deckType as DeckType,
+    }
+
+    await db
+      .update(rooms)
+      .set({
+        deckType: body.deckType as DeckType,
+        config: JSON.stringify(nextConfig),
+        updatedAt: new Date(),
+      })
+      .where(eq(rooms.id, room.id))
+
+    return NextResponse.json({
+      success: true,
+      config: nextConfig,
     })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -87,6 +87,7 @@ export async function POST(request: Request) {
       .values({
         code,
         status: 'lobby',
+        deckType,
         config: JSON.stringify(config),
         createdAt: new Date(),
         updatedAt: new Date(),

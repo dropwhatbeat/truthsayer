@@ -3,6 +3,32 @@ import { GAME_DECK } from './decks/absurdTruthsDeck'
 import { CHINESE_SAYINGS_DECK } from './decks/chineseSayingsDeck'
 import { MEDICAL_DECK } from './decks/medicalDeck'
 
+export interface DeckMetadata {
+  label: string
+  description: string
+}
+
+export const DECK_METADATA: Record<DeckType, DeckMetadata> = {
+  'absurd-truths': {
+    label: 'Absurd Truths',
+    description: 'Chaotic prompts and punchlines built for the core party-game flow.',
+  },
+  'chinese-sayings': {
+    label: 'Chinese Sayings',
+    description: 'Classic sayings, literal translations, and mischievous cultural curveballs.',
+  },
+  medical: {
+    label: 'Medical',
+    description: 'Body facts, clinical jargon, and suspiciously confident health nonsense.',
+  },
+}
+
+export const DECK_TYPES = Object.keys(DECK_METADATA) as DeckType[]
+
+export function isDeckType(value: unknown): value is DeckType {
+  return typeof value === 'string' && value in DECK_METADATA
+}
+
 export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
