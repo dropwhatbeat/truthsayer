@@ -15,7 +15,7 @@
     "incremental": true,
     "allowArbitraryExtensions": true,
     "plugins": [{ "name": "next" }],
-    "paths": { "@/*": ["./*"] }
+    "paths": { "@/*": ["./*"], "@bsking/game-engine": ["./packages/game-engine/src"] }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
