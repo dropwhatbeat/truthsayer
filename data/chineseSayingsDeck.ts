@@ -211,10 +211,6 @@ export const CHINESE_SAYINGS_DECK: Card[] = [
     answer: "An ancient Chinese astronomical-musical practice: twelve pitch-pipes of graduated lengths, aligned with the twelve months of the year, were buried underground in a sealed chamber. The pipes were filled with ash from burned reeds. According to classical texts, when the new month arrived, the qi of that season would cause the ash in the corresponding pipe to stir and blow outward spontaneously — without any air movement — signaling the precise moment of seasonal transition. This was practiced at the imperial court as a way of detecting seasonal qi changes invisible to the senses. It was taken completely seriously for over a thousand years.",
   },
   {
-    phrase: '胎教 (tāi jiào)',
-    answer: "Documented in official Zhou dynasty court records: pregnant noblewomen were given strict instructions about what to look at, listen to, and think about throughout their pregnancy, because the fetus's character was believed to be shaped by the mother's sensory experiences. A pregnant noblewoman could not look at anything ugly or misshapen, listen to improper music, read frivolous literature, or eat food cut at the wrong angle. Violation of any rule was believed to produce a specific corresponding defect in the child. The practice was called prenatal education and was maintained for over two thousand years.",
-  },
-  {
     phrase: '避讳 (bì huì)',
     answer: "The Chinese imperial taboo practice of never writing or speaking the personal name of the reigning emperor or one's own ancestors. During Emperor Xuanzong's reign (personal name: Li Longji), the character 基 (jī) became forbidden in official writing across the empire. All occurrences of that character in the Confucian classics required substitute characters when read aloud. Over 2,000 years of Chinese history, this created thousands of alternative character forms, substitute pronunciations, and textual corruptions that classical scholars are still cataloguing. Some classical texts survive only in versions already corrupted by taboo avoidance.",
   },
