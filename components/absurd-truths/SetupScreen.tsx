@@ -1,23 +1,17 @@
 
 'use client'
 
-import { useEffect, useRef, useState, forwardRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePostHog } from 'posthog-js/react'
 import type { DeckType } from '@bsking/game-engine'
+import Reel, { REEL_ITEM_H, getReelValue } from './Reel'
 export type { DeckType }
 
 const ROUND_OPTIONS = [5, 10, 20, 30]
-const TIMER_OPTIONS = [15, 30, 45, 60]
+const TIMER_OPTIONS = [0, 15, 30, 45, 60]
 
 interface Props {
   onStart: (rounds: number, timerSecs: number, deckType: DeckType) => void
-}
-
-const REEL_ITEM_H = 38
-
-function getReelValue(el: HTMLDivElement, options: number[]) {
-  const idx = Math.max(0, Math.min(Math.round(el.scrollTop / REEL_ITEM_H), options.length - 1))
-  return options[idx]
 }
 
 function ArrowRight({ color }: { color: string }) {
@@ -207,7 +201,7 @@ export default function SetupScreen({ onStart }: Props) {
     if (!showSettings) return
     setTimeout(() => {
       if (roundsRef.current) roundsRef.current.scrollTop = REEL_ITEM_H
-      if (timerRef.current)  timerRef.current.scrollTop  = REEL_ITEM_H
+      if (timerRef.current)  timerRef.current.scrollTop  = REEL_ITEM_H * 2 // default 30s = index 2
     }, 50)
   }, [showSettings])
 
@@ -333,7 +327,7 @@ export default function SetupScreen({ onStart }: Props) {
             </div>
 
             {/* Reels */}
-            <div className="flex flex-row gap-4 md:gap-12 mt-3 md:mt-5 w-full justify-center">
+            <div className="flex flex-row gap-4 md:gap-12 mt-3 md:mt-5 w-full justify-center md:max-w-[500px] md:mx-auto">
               <Reel
                 label="Rounds"
                 labelFull="How many rounds?"
@@ -348,7 +342,7 @@ export default function SetupScreen({ onStart }: Props) {
                 label="Timer"
                 labelFull="Reading timer?"
                 ref={timerRef}
-                options={TIMER_OPTIONS.map(n => `${n}s`)}
+                options={TIMER_OPTIONS.map(n => (n === 0 ? 'None' : `${n}s`))}
                 accentColor="#2dd4bf"
                 highlightBg="#f0fdfa"
                 highlightBorder="#99f6e4"
@@ -390,49 +384,3 @@ export default function SetupScreen({ onStart }: Props) {
   )
 }
 
-/* ── Reel ── */
-interface ReelProps {
-  label: string
-  labelFull: string
-  options: string[]
-  accentColor: string
-  highlightBg: string
-  highlightBorder: string
-  borderColor: string
-}
-
-const Reel = forwardRef<HTMLDivElement, ReelProps>(function Reel(
-  { label, labelFull, options, accentColor, highlightBg, highlightBorder, borderColor },
-  ref,
-) {
-  return (
-    <div className="flex flex-col flex-1 md:flex-none md:w-[220px]">
-      {/* Short label on mobile, full label on desktop */}
-      <p className="font-caveat font-semibold text-center mb-2 md:mb-3 md:hidden"
-        style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', color: '#64748b' }}>
-        {label}
-      </p>
-      <p className="font-caveat font-semibold text-center mb-3 hidden md:block text-2xl" style={{ color: '#64748b' }}>
-        {labelFull}
-      </p>
-      <div className="relative rounded-2xl overflow-hidden border-2"
-        style={{ height: 114, borderColor, background: '#fff' }}>
-        <div className="absolute top-0 inset-x-0 z-10 pointer-events-none"
-          style={{ height: 38, background: 'linear-gradient(to bottom,#fffdf7 30%,transparent)' }} />
-        <div className="absolute bottom-0 inset-x-0 z-10 pointer-events-none"
-          style={{ height: 38, background: 'linear-gradient(to top,#fffdf7 30%,transparent)' }} />
-        <div className="absolute inset-x-0 pointer-events-none"
-          style={{ top: 38, height: 38, background: highlightBg, borderTop: `2px solid ${highlightBorder}`, borderBottom: `2px solid ${highlightBorder}` }} />
-        <div ref={ref} className="reel absolute inset-0">
-          <div className="reel-item" />
-          {options.map(opt => (
-            <div key={opt} className="reel-item font-caveat font-bold" style={{ fontSize: '1.5rem', color: accentColor }}>
-              {opt}
-            </div>
-          ))}
-          <div className="reel-item" />
-        </div>
-      </div>
-    </div>
-  )
-})

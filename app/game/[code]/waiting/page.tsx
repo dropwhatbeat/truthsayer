@@ -2,18 +2,23 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { DECK_METADATA, DECK_TYPES } from '@bsking/game-engine'
-import type { DeckType } from '@bsking/game-engine'
+import { DECK_METADATA } from '@bsking/game-engine'
 import { usePhaseRedirect } from '@/lib/use-phase-redirect'
 import { useGame } from '@/lib/game-context'
 import PlayerList from '@/components/absurd-truths/PlayerList'
+import CopyCode from '@/components/absurd-truths/CopyCode'
+
+const DECK_EMOJI: Record<string, string> = {
+  'absurd-truths': '🤪',
+  'chinese-sayings': '🐉',
+  medical: '🩺',
+}
 
 export default function WaitingPage() {
   usePhaseRedirect('waiting')
   const router = useRouter()
-  const { room, currentPlayerId, currentPlayerSecret, refetch } = useGame()
+  const { room, currentPlayerId, currentPlayerSecret } = useGame()
   const [starting, setStarting] = useState(false)
-  const [updatingDeck, setUpdatingDeck] = useState(false)
   const [error, setError] = useState('')
 
   if (!room) return null
@@ -23,28 +28,6 @@ export default function WaitingPage() {
   const canStart = registeredPlayers.length >= 3
   const selectedDeckType = room.config.deckType
   const selectedDeck = DECK_METADATA[selectedDeckType] ?? DECK_METADATA['absurd-truths']
-
-  async function handleDeckChange(deckType: DeckType) {
-    setError('')
-    setUpdatingDeck(true)
-    try {
-      const res = await fetch(`/api/rooms/${room.code}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId: currentPlayerId, playerSecret: currentPlayerSecret, deckType }),
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setError(data.error || 'Failed to update deck')
-        return
-      }
-      refetch()
-    } catch {
-      setError('Network error. Please try again.')
-    } finally {
-      setUpdatingDeck(false)
-    }
-  }
 
   async function handleStart() {
     setError('')
@@ -81,45 +64,29 @@ export default function WaitingPage() {
             Waiting Room
           </p>
           <p className="font-inter text-sm mt-1" style={{ color: '#94a3b8' }}>
-            Room: <span className="tracking-widest font-mono">{room.code}</span>
+            Room: <CopyCode code={room.code} />
           </p>
         </div>
 
-        <div className="text-left">
-          <div className="rounded-2xl border p-4 space-y-3" style={{ borderColor: '#e2e8f0', background: '#fff' }}>
-            <div>
-              <p className="font-inter text-xs uppercase tracking-[0.18em]" style={{ color: '#94a3b8' }}>
-                Selected Deck
-              </p>
-              <p className="font-caveat font-bold text-2xl mt-1" style={{ color: '#0f172a' }}>
-                {selectedDeck.label}
-              </p>
-              <p className="font-inter text-sm mt-1" style={{ color: '#64748b' }}>
-                {selectedDeck.description}
-              </p>
+        <div className="rounded-2xl border p-4 flex items-center gap-4" style={{ borderColor: '#e2e8f0', background: '#fff' }}>
+          <span style={{ fontSize: '2.4rem', lineHeight: 1, flexShrink: 0 }}>
+            {DECK_EMOJI[selectedDeckType] ?? '🃏'}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-caveat font-bold text-xl leading-tight" style={{ color: '#0f172a' }}>
+              {selectedDeck.label}
+            </p>
+            <p className="font-inter text-xs mt-0.5 leading-snug" style={{ color: '#94a3b8' }}>
+              {selectedDeck.description}
+            </p>
+            <div className="flex gap-3 mt-2">
+              <span className="font-inter text-xs font-semibold rounded-full px-2 py-0.5" style={{ background: '#f0fdfa', color: '#0f766e' }}>
+                {room.config.timerSecs}s timer
+              </span>
+              <span className="font-inter text-xs font-semibold rounded-full px-2 py-0.5" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
+                {room.config.roundCount} rounds
+              </span>
             </div>
-
-            {isHost ? (
-              <label className="block">
-                <span className="font-inter text-sm" style={{ color: '#64748b' }}>
-                  Choose deck
-                </span>
-                <select
-                  aria-label="Choose deck"
-                  value={selectedDeckType}
-                  disabled={updatingDeck || starting}
-                  onChange={(event) => handleDeckChange(event.target.value as DeckType)}
-                  className="mt-2 w-full rounded-xl border px-4 py-3 font-inter text-sm"
-                  style={{ borderColor: '#cbd5e1', background: '#fff', color: '#0f172a' }}
-                >
-                  {DECK_TYPES.map((deckType) => (
-                    <option key={deckType} value={deckType}>
-                      {DECK_METADATA[deckType].label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
           </div>
         </div>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getCredentials } from '@/lib/game-context'
+import CopyCode from '@/components/absurd-truths/CopyCode'
 
 const joinRequests = new Map<
   string,
@@ -134,7 +135,7 @@ export default function RegisterPage() {
             Enter Your Name
           </p>
           <p className="font-inter text-sm mt-1" style={{ color: '#94a3b8' }}>
-            Room: <span className="tracking-widest font-mono">{code}</span>
+            Room: <CopyCode code={code} />
           </p>
         </div>
 

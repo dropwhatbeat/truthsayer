@@ -1,29 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePhaseRedirect } from '@/lib/use-phase-redirect'
 import { useGame } from '@/lib/game-context'
 import CategoryPills from '@/components/absurd-truths/CategoryPills'
+import Timer from '@/components/absurd-truths/Timer'
+
+const ROLE_LABEL: Record<string, string> = {
+  honest: 'you are the truthsayer',
+  liar: 'try to BS!',
+  judge: 'you are the judge',
+}
 
 export default function ReadingPage() {
   usePhaseRedirect('reading')
   const { room, currentPlayer, currentPlayerId, currentPlayerSecret } = useGame()
+
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
 
-  if (!room || !currentPlayerId) return null
+  const totalSecs = room?.config?.timerSecs ?? 30
+  const hasTimer = totalSecs > 0
+  const [timeLeft, setTimeLeft] = useState(totalSecs)
+  const hasAutoAdvanced = useRef(false)
 
-  const round = room.currentRound
-  const role = currentPlayer?.role
-  const isHonest = role === 'honest'
+  const role = currentPlayer?.role ?? null
   const isJudge = role === 'judge'
 
   async function handleStartVoting() {
+    if (!room || !currentPlayerId) return
     setError('')
     setSubmitting(true)
     try {
-      const res = await fetch(`/api/rooms/${room!.code}/moves`, {
+      const res = await fetch(`/api/rooms/${room.code}/moves`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -46,6 +56,24 @@ export default function ReadingPage() {
     }
   }
 
+  useEffect(() => {
+    if (!hasTimer) return
+    if (timeLeft <= 0) {
+      if (isJudge && !submitted && !submitting && !hasAutoAdvanced.current) {
+        hasAutoAdvanced.current = true
+        handleStartVoting()
+      }
+      return
+    }
+    const id = setInterval(() => setTimeLeft((t) => t - 1), 1000)
+    return () => clearInterval(id)
+  }, [timeLeft, isJudge, submitted, submitting, hasTimer])
+
+  if (!room || !currentPlayerId) return null
+
+  const round = room.currentRound
+  const isHonest = role === 'honest'
+
   const categories = round?.categories
     ? (Array.isArray(round.categories) ? round.categories : [])
     : []
@@ -57,10 +85,16 @@ export default function ReadingPage() {
           <p className="font-caveat font-bold text-3xl" style={{ color: '#a855f7' }}>
             Round {round?.roundNumber ?? '?'}
           </p>
-          <p className="font-inter text-sm mt-1 capitalize" style={{ color: '#94a3b8' }}>
-            {role ? `You are the ${role}` : 'Reading phase'}
+          <p className="font-inter text-sm mt-1" style={{ color: '#94a3b8' }}>
+            {role ? (ROLE_LABEL[role] ?? `you are the ${role}`) : 'Reading phase'}
           </p>
         </div>
+
+        {hasTimer && (
+          <div className="flex justify-center">
+            <Timer seconds={timeLeft} total={totalSecs} />
+          </div>
+        )}
 
         {round?.cardPhrase && (
           <div
@@ -109,12 +143,12 @@ export default function ReadingPage() {
           ) : (
             <button
               onClick={handleStartVoting}
-              disabled={submitting}
+              disabled={submitting || (hasTimer && timeLeft > 0)}
               className="w-full py-4 rounded-xl font-caveat font-bold text-xl shadow-md
-                         transition-all active:scale-[0.97] disabled:opacity-50"
+                         transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: '#2dd4bf', color: '#0f4c4c' }}
             >
-              {submitting ? 'Starting...' : 'Start Voting'}
+              {submitting ? 'Starting...' : hasTimer && timeLeft > 0 ? `Wait — ${timeLeft}s` : 'Start Voting'}
             </button>
           )
         ) : (

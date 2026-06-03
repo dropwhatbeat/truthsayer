@@ -58,14 +58,15 @@ export default function RevealPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFFDF7' }}>
-      <div className="w-full max-w-sm space-y-6 text-center">
-        <div>
-          <p className="font-caveat font-bold text-3xl" style={{ color: '#a855f7' }}>
-            Round {round?.roundNumber ?? '?'} Results
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col items-center px-5 py-10" style={{ background: '#FFFDF7' }}>
+      <div className="w-full max-w-md space-y-5">
 
+        {/* Header */}
+        <p className="font-caveat font-bold text-3xl text-center" style={{ color: '#a855f7' }}>
+          Round {round?.roundNumber ?? '?'} Results
+        </p>
+
+        {/* Card phrase */}
         {round?.cardPhrase && (
           <div
             className="rounded-3xl px-6 py-5 text-center shadow-sm border"
@@ -73,65 +74,73 @@ export default function RevealPage() {
           >
             <p
               className="font-caveat font-bold leading-tight"
-              style={{ fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: '#1e293b', overflowWrap: 'break-word' }}
+              style={{ fontSize: 'clamp(1.4rem, 5vw, 2rem)', color: '#1e293b', overflowWrap: 'break-word' }}
             >
               {round.cardPhrase}
             </p>
           </div>
         )}
 
+        {/* Real answer */}
         {round?.cardAnswer && (
-          <div
-            className="rounded-xl px-4 py-3 border text-left"
-            style={{ background: '#f0fdf4', borderColor: '#86efac' }}
-          >
-            <p className="font-inter text-xs font-semibold mb-1" style={{ color: '#166534' }}>
-              Real answer:
-            </p>
-            <p className="font-inter text-sm" style={{ color: '#166534' }}>
-              {round.cardAnswer}
-            </p>
+          <div className="rounded-xl px-5 py-3 border" style={{ background: '#f0fdf4', borderColor: '#86efac' }}>
+            <p className="font-inter text-xs font-semibold mb-1" style={{ color: '#166534' }}>Real answer</p>
+            <p className="font-inter text-sm" style={{ color: '#166534' }}>{round.cardAnswer}</p>
           </div>
         )}
 
-        <div className="space-y-2 text-left">
-          <div className="flex items-center justify-between px-4 py-2 rounded-lg" style={{ background: '#f8fafc' }}>
-            <span className="font-inter text-sm" style={{ color: '#334155' }}>
-              Honest player
-            </span>
-            <span className="font-inter text-sm font-semibold capitalize" style={{ color: '#2dd4bf' }}>
-              {honestPlayer?.name || 'Unknown'}
-            </span>
+        {/* Truthsayer + Judge voted — side by side */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl px-4 py-4 text-center border" style={{ background: '#fff', borderColor: '#e2e8f0' }}>
+            <p className="font-inter text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#94a3b8' }}>
+              Truthsayer
+            </p>
+            <p className="font-caveat font-bold text-xl" style={{ color: '#2dd4bf' }}>
+              {honestPlayer?.name || '—'}
+            </p>
           </div>
-
-          <div className="flex items-center justify-between px-4 py-2 rounded-lg" style={{ background: '#f8fafc' }}>
-            <span className="font-inter text-sm" style={{ color: '#334155' }}>
+          <div className="rounded-xl px-4 py-4 text-center border" style={{ background: '#fff', borderColor: '#e2e8f0' }}>
+            <p className="font-inter text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#94a3b8' }}>
               Judge voted for
-            </span>
-            <span className="font-inter text-sm font-semibold" style={{ color: '#a855f7' }}>
-              {votedFor?.name || 'Unknown'}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between px-4 py-2 rounded-lg" style={{ background: judgeCorrect ? '#fefce8' : '#fef2f2' }}>
-            <span className="font-inter text-sm" style={{ color: '#334155' }}>
-              Result
-            </span>
-            <span className="font-inter text-sm font-semibold capitalize" style={{ color: judgeCorrect ? '#f59e0b' : '#ef4444' }}>
-              {judgeCorrect ? `+1 point for ${judgePlayer?.name || 'judge'}` : `+1 point for ${honestPlayer?.name || 'honest'}`}
-            </span>
+            </p>
+            <p className="font-caveat font-bold text-xl" style={{ color: '#a855f7' }}>
+              {votedFor?.name || '—'}
+            </p>
           </div>
         </div>
 
+        {/* Verdict */}
+        <div
+          className="rounded-xl px-5 py-4 flex items-center gap-4"
+          style={{
+            background: judgeCorrect ? '#fefce8' : '#fdf4ff',
+            border: `1.5px solid ${judgeCorrect ? '#fde68a' : '#e9d5ff'}`,
+          }}
+        >
+          <span style={{ fontSize: '2rem', lineHeight: 1 }}>{judgeCorrect ? '🎯' : '🙈'}</span>
+          <div>
+            <p className="font-caveat font-bold text-lg" style={{ color: judgeCorrect ? '#b45309' : '#7c3aed' }}>
+              {judgeCorrect ? 'Judge got it!' : 'Bluff successful!'}
+            </p>
+            <p className="font-inter text-xs mt-0.5" style={{ color: '#64748b' }}>
+              {judgeCorrect
+                ? `+1 point for ${judgePlayer?.name || 'the judge'}`
+                : `+1 point for ${honestPlayer?.name || 'the truthsayer'}`}
+            </p>
+          </div>
+        </div>
+
+        {/* Scoreboard */}
         {scoreEntries.length > 0 && (
           <div>
-            <p className="font-inter text-sm font-semibold mb-2" style={{ color: '#64748b' }}>
+            <p className="font-caveat font-bold text-lg mb-2" style={{ color: '#334155' }}>
               Scoreboard
             </p>
             <ScoreBoard scores={scoreEntries} />
           </div>
         )}
 
+        {/* Next round */}
         <button
           onClick={handleNextRound}
           disabled={submitting}
@@ -139,11 +148,11 @@ export default function RevealPage() {
                      transition-all active:scale-[0.97] disabled:opacity-50"
           style={{ background: '#2dd4bf', color: '#0f4c4c' }}
         >
-          {submitting ? 'Advancing...' : 'Next Round'}
+          {submitting ? 'Advancing...' : 'Next Round →'}
         </button>
 
         {error && (
-          <p className="text-red-500 text-sm bg-red-50 rounded-lg py-2 px-4">
+          <p className="text-red-500 text-sm bg-red-50 rounded-lg py-2 px-4 text-center">
             {error}
           </p>
         )}

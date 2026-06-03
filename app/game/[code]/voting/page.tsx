@@ -60,8 +60,8 @@ export default function VotingPage() {
           <p className="font-caveat font-bold text-3xl" style={{ color: '#a855f7' }}>
             Voting Time
           </p>
-          <p className="font-inter text-sm mt-1 capitalize" style={{ color: '#94a3b8' }}>
-            {role ? `You are the ${role}` : 'Voting phase'}
+          <p className="font-inter text-sm mt-1" style={{ color: '#94a3b8' }}>
+            {role ? ({ honest: 'you are the truthsayer', liar: 'try to BS!', judge: 'you are the judge' }[role] ?? `you are the ${role}`) : 'Voting phase'}
           </p>
         </div>
 

@@ -7,27 +7,7 @@ export default function Home() {
   const router = useRouter()
   const [roomCode, setRoomCode] = useState('')
   const [error, setError] = useState('')
-  const [creating, setCreating] = useState(false)
   const [joining, setJoining] = useState(false)
-
-  async function handleCreate() {
-    setError('')
-    setCreating(true)
-    try {
-      const res = await fetch('/api/rooms', { method: 'POST' })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setError(data.error || 'Failed to create room')
-        return
-      }
-      const data = await res.json()
-      router.push(`/game/${data.code}/register`)
-    } catch {
-      setError('Network error. Please try again.')
-    } finally {
-      setCreating(false)
-    }
-  }
 
   async function handleJoin() {
     const code = roomCode.trim().toUpperCase()
@@ -70,13 +50,12 @@ export default function Home() {
 
       <div className="w-full max-w-sm space-y-6">
         <button
-          onClick={handleCreate}
-          disabled={creating}
+          onClick={() => router.push('/create')}
           className="w-full py-3 px-6 rounded-xl font-caveat font-bold text-xl shadow-md
-                     transition-all active:scale-[0.97] disabled:opacity-50"
+                     transition-all active:scale-[0.97]"
           style={{ background: '#a855f7', color: '#ffffff' }}
         >
-          {creating ? 'Creating...' : 'Create Room'}
+          Create Room
         </button>
 
         <div className="relative">
