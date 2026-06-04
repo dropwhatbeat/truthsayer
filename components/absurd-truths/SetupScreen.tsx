@@ -1,386 +1,284 @@
 
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { usePostHog } from 'posthog-js/react'
 import type { DeckType } from '@bsking/game-engine'
-import Reel, { REEL_ITEM_H, getReelValue } from './Reel'
+
 export type { DeckType }
 
 const ROUND_OPTIONS = [5, 10, 20, 30]
 const TIMER_OPTIONS = [0, 15, 30, 45, 60]
+const TILTS = [-1.2, 0.7, -0.6, 0.9, -1, 0.7, -0.8, 1]
+
+interface DeckInfo {
+  key: string
+  glyph: string
+  title: string
+  sub: string
+  hints: string[]
+  count: number
+  comingSoon?: boolean
+}
+
+const DECKS: DeckInfo[] = [
+  { key: 'absurd-truths',   glyph: '🧠', title: 'Absurd Truths',   sub: 'real words that sound completely fake',            hints: ['🦑','💃','🍳'], count: 48 },
+  { key: 'chinese-sayings', glyph: '🐉', title: 'Chinese Sayings',  sub: 'ancient wisdom, gloriously misremembered',          hints: ['🥟','📜','🀄'], count: 40 },
+  { key: 'medical',         glyph: '🩺', title: 'Medical Marvels',  sub: "syndromes you'll swear we made up",                 hints: ['🧠','🦴','💊'], count: 36 },
+  { key: 'science',         glyph: '🔬', title: 'Mad Science',      sub: 'real phenomena, gloriously unhinged',               hints: ['🧪','🦠','🌋'], count: 44, comingSoon: true },
+  { key: 'history',         glyph: '📜', title: 'Bad History',      sub: 'things that absolutely happened. probably.',        hints: ['🏛️','⚔️','👑'], count: 42, comingSoon: true },
+  { key: 'geography',       glyph: '🌍', title: 'Cursed Places',    sub: 'spots too weird to be on a map',                   hints: ['🗺️','🏔️','🏝️'], count: 38, comingSoon: true },
+  { key: 'art',             glyph: '🎨', title: 'Fancy Nonsense',   sub: 'pretentious art facts, exquisitely faked',          hints: ['🖼️','🎭','🎻'], count: 34, comingSoon: true },
+  { key: 'space',           glyph: '🪐', title: 'Deep Space',       sub: 'cosmic facts that sound like lies',                 hints: ['🌠','🛰️','🌑'], count: 30, comingSoon: true },
+]
 
 interface Props {
   onStart: (rounds: number, timerSecs: number, deckType: DeckType) => void
 }
 
-function ArrowRight({ color }: { color: string }) {
+function DeckCard({ deck, selected, onSelect, tilt }: {
+  deck: DeckInfo
+  selected: boolean
+  onSelect: () => void
+  tilt: number
+}) {
   return (
-    <div className="flex items-center justify-center shrink-0" style={{ width: 40 }}>
-      <svg width="40" height="28" viewBox="0 0 40 28" fill="none">
-        <path d="M2 14 Q10 5 20 14 Q30 23 38 14" stroke={color} strokeWidth="2.8" strokeLinecap="round" fill="none"/>
-        <path d="M30 9 L38 14 L30 19" stroke={color} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      </svg>
-    </div>
-  )
-}
-
-function Badge({ n, color }: { n: number; color: string }) {
-  return (
-    <div className="flex items-center justify-center font-caveat font-bold shrink-0"
-      style={{ width: 22, height: 22, borderRadius: '50%', background: color, color: '#fff', fontSize: '0.8rem' }}>
-      {n}
-    </div>
-  )
-}
-
-/* ── Mobile: compact 2×2 tiles ── */
-const MOBILE_STEPS = [
-  { n: 1, icon: '🕵️', topBg: '#ede9fe', bottomBg: '#faf5ff', border: '#ddd6fe', accent: '#a855f7', textColor: '#4c1d95', text: '1 guesser, everyone else plays' },
-  { n: 2, icon: '📖', topBg: '#ccfbf1', bottomBg: '#f0fdfa', border: '#99f6e4', accent: '#0d9488', textColor: '#134e4a', text: 'Everyone sees the word & hints' },
-  { n: 3, icon: '👁️', topBg: '#1e1b4b', bottomBg: '#f5f3ff', border: '#4c1d95', accent: '#7c3aed', textColor: '#4c1d95', text: 'Only Truthsayer peeks in secret' },
-  { n: 4, icon: '🎭', topBg: '#ccfbf1', bottomBg: '#f0fdfa', border: '#99f6e4', accent: '#0d9488', textColor: '#134e4a', text: 'Bluff to fool the guesser!' },
-]
-
-function MobileTiles() {
-  return (
-    <div className="grid grid-cols-2 gap-2 w-full mt-4">
-      {MOBILE_STEPS.map(({ n, icon, topBg, bottomBg, border, accent, textColor, text }) => (
-        <div key={n} className="flex flex-col rounded-2xl overflow-hidden border-2" style={{ borderColor: border }}>
-          <div className="flex flex-col items-center justify-center py-3 gap-1.5" style={{ background: topBg }}>
-            <div className="flex items-center justify-center font-caveat font-bold"
-              style={{ width: 20, height: 20, borderRadius: '50%', background: accent, color: '#fff', fontSize: '0.7rem' }}>
-              {n}
-            </div>
-            <span style={{ fontSize: '2rem', lineHeight: 1 }}>{icon}</span>
-          </div>
-          <div className="px-2.5 py-2" style={{ background: bottomBg }}>
-            <p className="font-inter font-semibold leading-snug" style={{ fontSize: '0.65rem', color: textColor }}>
-              {text}
-            </p>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-/* ── Desktop: rich illustrated cards ── */
-function Card1() {
-  return (
-    <div className="flex-1 flex flex-col rounded-3xl overflow-hidden border-2 min-w-0" style={{ borderColor: '#ddd6fe' }}>
-      <div className="flex-1 flex flex-col px-5 pt-5 pb-4" style={{ background: '#ede9fe' }}>
-        <div className="flex items-center justify-between mb-4">
-          <Badge n={1} color="#a855f7" />
-          <span className="font-caveat font-bold text-base" style={{ color: '#7c3aed' }}>pick a guesser</span>
-        </div>
-        <div className="flex items-end justify-center gap-2 flex-1">
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center justify-center rounded-full border-2 border-violet-600"
-              style={{ width: 44, height: 44, background: '#a855f7', fontSize: '1.4rem' }}>🕵️</div>
-            <span style={{ fontSize: '0.55rem', color: '#6d28d9', fontFamily: 'Inter', fontWeight: 700, letterSpacing: '0.06em' }}>GUESSER</span>
-          </div>
-          {['😄','😄','😄','😄'].map((e, i) => (
-            <div key={i} className="flex items-center justify-center rounded-full"
-              style={{ width: 32, height: 32, background: '#c4b5fd', fontSize: '1.1rem' }}>{e}</div>
-          ))}
-        </div>
-      </div>
-      <div className="px-5 py-4" style={{ background: '#faf5ff' }}>
-        <p className="font-inter font-semibold text-sm leading-snug" style={{ color: '#4c1d95' }}>
-          1 guesser, as many players as you want
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function Card2() {
-  return (
-    <div className="flex-1 flex flex-col rounded-3xl overflow-hidden border-2 min-w-0" style={{ borderColor: '#99f6e4' }}>
-      <div className="flex-1 flex flex-col px-5 pt-5 pb-4" style={{ background: '#ccfbf1' }}>
-        <div className="flex items-center justify-between mb-4">
-          <Badge n={2} color="#0d9488" />
-          <span className="font-caveat font-bold text-base" style={{ color: '#0f766e' }}>see the prompt</span>
-        </div>
-        <div className="flex flex-col items-center gap-2 flex-1 justify-center">
-          <div className="rounded-xl text-center py-1.5 px-3 font-black w-full"
-            style={{ background: '#FFF8EE', border: '2px solid #fde68a', fontSize: '1.15rem', color: '#1e293b' }}>
-            Psithurism
-          </div>
-          <div className="flex gap-1.5 flex-wrap justify-center">
-            {[['🦑','sea creature'],['💃','old dance'],['🍳','kitchen tool']].map(([e, l]) => (
-              <span key={l} className="font-inter font-semibold"
-                style={{ fontSize: '0.62rem', padding: '3px 8px', borderRadius: 999, background: '#f5f3ff', border: '1.5px solid #ddd6fe', color: '#6d28d9' }}>
-                {e} {l}
-              </span>
-            ))}
+    <button
+      data-deck={deck.key}
+      onClick={deck.comingSoon ? undefined : onSelect}
+      className={`ts-deck-card${selected ? ' is-selected' : ''}`}
+      style={{
+        ['--deck-tilt' as string]: `${tilt}deg`,
+        transform: `rotate(${tilt}deg)`,
+        opacity: deck.comingSoon ? 0.55 : 1,
+        cursor: deck.comingSoon ? 'default' : 'pointer',
+        width: '100%',
+      }}
+    >
+      <span className="ts-deck-card__check" aria-hidden="true">✓</span>
+      <div className="ts-deck-card__top">
+        <div className="ts-deck-card__glyph">{deck.glyph}</div>
+        <div className="ts-deck-card__titles">
+          <div className="ts-deck-card__title">{deck.title}</div>
+          <div className="ts-deck-card__sub">
+            {deck.comingSoon
+              ? <em style={{ color: '#94a3b8', fontStyle: 'normal' }}>coming soon</em>
+              : deck.sub}
           </div>
         </div>
       </div>
-      <div className="px-5 py-4" style={{ background: '#f0fdfa' }}>
-        <p className="font-inter font-semibold text-sm leading-snug" style={{ color: '#134e4a' }}>
-          Everyone sees the word and hint categories
-        </p>
+      <div className="ts-deck-card__bot">
+        <span className="ts-deck-card__meta">{deck.count} cards</span>
+        <span className="ts-deck-card__hints">
+          {deck.hints.map((h, i) => <span key={i} className="ts-deck-card__hint">{h}</span>)}
+        </span>
+      </div>
+    </button>
+  )
+}
+
+function OptionRow({ label, options, value, onChange, fmt }: {
+  label: string
+  options: number[]
+  value: number
+  onChange: (v: number) => void
+  fmt?: (v: number) => string
+}) {
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <p style={{ textAlign: 'center', margin: '0 0 10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.68rem', color: '#94a3b8' }}>
+        {label}
+      </p>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {options.map(o => {
+          const on = o === value
+          return (
+            <button
+              key={o}
+              onClick={() => onChange(o)}
+              className="btn-press"
+              style={{
+                fontFamily: 'var(--font-caveat), cursive',
+                fontWeight: 700,
+                fontSize: '1.5rem',
+                lineHeight: 1,
+                minWidth: 52,
+                padding: '10px 14px',
+                cursor: 'pointer',
+                borderRadius: 14,
+                border: `2px solid ${on ? 'var(--deck-accent)' : '#e2e8f0'}`,
+                background: on ? 'var(--deck-soft)' : '#fff',
+                color: on ? 'var(--deck-ink)' : '#64748b',
+                boxShadow: on ? '3px 3px 0 var(--deck-shadow)' : 'none',
+                transition: 'border-color 150ms, background 150ms, box-shadow 150ms',
+              }}
+            >
+              {fmt ? fmt(o) : o}
+            </button>
+          )
+        })}
       </div>
     </div>
   )
 }
 
-function Card3() {
-  return (
-    <div className="flex-1 flex flex-col rounded-3xl overflow-hidden border-2 min-w-0" style={{ borderColor: '#4c1d95' }}>
-      <div className="flex-1 flex flex-col px-5 pt-5 pb-4" style={{ background: '#1e1b4b' }}>
-        <div className="flex items-center justify-between mb-4">
-          <Badge n={3} color="#7c3aed" />
-          <span className="font-caveat font-bold text-base" style={{ color: '#a78bfa' }}>the secret peek</span>
-        </div>
-        <div className="flex flex-col items-center gap-3 flex-1 justify-center">
-          <div className="flex items-center justify-center gap-3">
-            <span style={{ fontSize: '1.4rem', opacity: 0.6 }}>😑</span>
-            <span style={{ fontSize: '1.4rem', opacity: 0.6 }}>😑</span>
-            <div style={{ position: 'relative' }}>
-              <div style={{ position: 'absolute', inset: -5, borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(167,139,250,0.6) 0%, transparent 70%)' }}/>
-              <span style={{ fontSize: '1.6rem', position: 'relative' }}>👁️</span>
-            </div>
-            <span style={{ fontSize: '1.4rem', opacity: 0.6 }}>😑</span>
-          </div>
-          <div className="rounded-xl px-3 py-1.5 text-center w-full"
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1.5px solid rgba(167,139,250,0.4)' }}>
-            <p className="font-caveat font-bold text-sm" style={{ color: '#c4b5fd' }}>👁 only truthsayer peeks</p>
-          </div>
-        </div>
-      </div>
-      <div className="px-5 py-4" style={{ background: '#f5f3ff' }}>
-        <p className="font-inter font-semibold text-sm leading-snug" style={{ color: '#4c1d95' }}>
-          Everyone closes their eyes, gamemaster picks a truthsayer to see the truth
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function Card4() {
-  return (
-    <div className="flex-1 flex flex-col rounded-3xl overflow-hidden border-2 min-w-0" style={{ borderColor: '#99f6e4' }}>
-      <div className="flex-1 flex flex-col px-5 pt-5 pb-4" style={{ background: '#ccfbf1' }}>
-        <div className="flex items-center justify-between mb-4">
-          <Badge n={4} color="#0d9488" />
-          <span className="font-caveat font-bold text-base" style={{ color: '#0f766e' }}>storytelling time!</span>
-        </div>
-        <div className="flex flex-col gap-2 flex-1 justify-center">
-          <div className="rounded-2xl px-3 py-2 font-inter text-xs"
-            style={{ background: '#fff', border: '1.5px solid #a855f7', color: '#374151', borderRadius: '14px 14px 14px 4px' }}>
-            &ldquo;It&apos;s a a Greek word, it means to fall down &rdquo;
-          </div>
-          <div className="rounded-2xl px-3 py-2 font-inter text-xs self-end"
-            style={{ background: '#fff', border: '1.5px solid #2dd4bf', color: '#374151', borderRadius: '14px 14px 4px 14px', maxWidth: '90%' }}>
-            &ldquo;An ancient ritual where people sneeze many times&rdquo; 
-          </div>
-        </div>
-      </div>
-      <div className="px-5 py-4" style={{ background: '#f0fdfa' }}>
-        <p className="font-inter font-semibold text-sm leading-snug" style={{ color: '#134e4a' }}>
-          Invent a believable story, only Truthsayer tells the truth!
-        </p>
-      </div>
-    </div>
-  )
-}
-
-/* ── Main screen ── */
 export default function SetupScreen({ onStart }: Props) {
   const posthog = usePostHog()
-  const [showSettings, setShowSettings] = useState(false)
   const [selectedDeck, setSelectedDeck] = useState<DeckType>('absurd-truths')
-  const roundsRef = useRef<HTMLDivElement>(null)
-  const timerRef  = useRef<HTMLDivElement>(null)
+  const [rounds, setRounds] = useState(10)
+  const [timer, setTimer] = useState(30)
 
-  useEffect(() => {
-    if (!showSettings) return
-    setTimeout(() => {
-      if (roundsRef.current) roundsRef.current.scrollTop = REEL_ITEM_H
-      if (timerRef.current)  timerRef.current.scrollTop  = REEL_ITEM_H * 2 // default 30s = index 2
-    }, 50)
-  }, [showSettings])
+  const selected = DECKS.find(d => d.key === selectedDeck)!
+
+  function handleDeckSelect(deck: DeckInfo) {
+    if (deck.comingSoon) return
+    posthog.capture('deck_selected', { deck_type: deck.key })
+    setSelectedDeck(deck.key as DeckType)
+  }
 
   function handleStart() {
-    const rounds    = roundsRef.current ? getReelValue(roundsRef.current, ROUND_OPTIONS) : 10
-    const timerSecs = timerRef.current  ? getReelValue(timerRef.current,  TIMER_OPTIONS) : 30
-    posthog.capture('setup_confirmed', { rounds, timer_secs: timerSecs, deck_type: selectedDeck })
-    onStart(rounds, timerSecs, selectedDeck)
+    posthog.capture('setup_confirmed', { rounds, timer_secs: timer, deck_type: selectedDeck })
+    onStart(rounds, timer, selectedDeck)
   }
 
   return (
     <div
-      className="relative min-h-screen flex flex-col items-center justify-center px-4 md:px-8 py-8 md:py-16 overflow-hidden"
-      style={{ background: '#FFFDF7' }}
+      data-deck={selectedDeck}
+      style={{
+        position: 'relative',
+        minHeight: '100vh',
+        padding: 'clamp(20px,3vw,28px) clamp(16px,3vw,20px) 140px',
+        overflow: 'hidden',
+        background: '#FFF9EC',
+      }}
     >
-      {/* ── Background doodles ── */}
-      <span className="doodle font-caveat font-bold" style={{ fontSize: 'clamp(6rem,18vw,20rem)', color: '#a855f7', opacity: 0.04, top: '-4%', left: '-2%', transform: 'rotate(-14deg)', lineHeight: 1 }}>?</span>
-      <span className="doodle font-caveat font-bold" style={{ fontSize: 'clamp(5rem,12vw,14rem)', color: '#2dd4bf', opacity: 0.05, top: '2%', right: '3%', transform: 'rotate(10deg)', lineHeight: 1 }}>!</span>
-      <span className="doodle font-caveat" style={{ fontSize: 'clamp(1.5rem,4vw,5rem)', color: '#a855f7', opacity: 0.06, top: '44%', left: '1%', transform: 'rotate(-8deg)' }}>hmm</span>
-      <svg className="doodle" style={{ top: '6%', left: '40%', opacity: 0.06 }} width="55" height="55" viewBox="0 0 38 38" fill="none">
-        <path d="M19 2 L22.5 12.5 L34 12.5 L25 19.5 L28.5 30 L19 23.5 L9.5 30 L13 19.5 L4 12.5 L15.5 12.5 Z" stroke="#a855f7" strokeWidth="2" strokeLinejoin="round"/>
+      {/* Background doodles */}
+      <span className="doodle font-caveat font-bold" style={{ fontSize: 'clamp(6rem,18vw,18rem)', color: '#d8401e', opacity: 0.04, top: '-3%', left: '-2%', transform: 'rotate(-14deg)', lineHeight: 1 }}>?</span>
+      <span className="doodle font-caveat font-bold" style={{ fontSize: 'clamp(5rem,12vw,13rem)', color: '#6a9a26', opacity: 0.05, top: '1%', right: '2%', transform: 'rotate(10deg)', lineHeight: 1 }}>!</span>
+      <span className="doodle font-caveat" style={{ fontStyle: 'italic', fontSize: 'clamp(1.6rem,4vw,4rem)', color: '#2f8fd6', opacity: 0.06, top: '52%', left: '1%', transform: 'rotate(-8deg)' }}>pick one…</span>
+      <svg className="doodle" style={{ top: '7%', left: '42%', opacity: 0.06 }} width="52" height="52" viewBox="0 0 38 38" fill="none">
+        <path d="M19 2 L22.5 12.5 L34 12.5 L25 19.5 L28.5 30 L19 23.5 L9.5 30 L13 19.5 L4 12.5 L15.5 12.5 Z" stroke="#f5b820" strokeWidth="2" strokeLinejoin="round"/>
       </svg>
-      <svg className="doodle" style={{ top: '38%', right: '2%', opacity: 0.07 }} width="70" height="70" viewBox="0 0 36 36" fill="none">
-        <path d="M18 4 C27 4 32 11 32 18 C32 27 27 32 18 32 C9 32 4 27 4 18 C4 9 9 4 18 4" stroke="#2dd4bf" strokeWidth="2" strokeDasharray="5 4" strokeLinecap="round"/>
+      <svg className="doodle" style={{ top: '40%', right: '2%', opacity: 0.07 }} width="64" height="64" viewBox="0 0 36 36" fill="none">
+        <path d="M18 4 C27 4 32 11 32 18 C32 27 27 32 18 32 C9 32 4 27 4 18 C4 9 9 4 18 4" stroke="#d6457f" strokeWidth="2" strokeDasharray="5 4" strokeLinecap="round"/>
       </svg>
-      <svg className="doodle" style={{ top: '60%', right: '1%', opacity: 0.07 }} width="36" height="58" viewBox="0 0 28 44" fill="none">
-        <path d="M16 2 L4 22 L13 22 L12 42 L24 20 L15 20 Z" stroke="#2dd4bf" strokeWidth="2.2" strokeLinejoin="round"/>
-      </svg>
-      <span className="doodle font-caveat" style={{ fontSize: '2rem', color: '#a855f7', opacity: 0.07, bottom: '8%', left: '5%', transform: 'rotate(-12deg)' }}>✦</span>
-      <span className="doodle font-caveat" style={{ fontSize: '1.8rem', color: '#2dd4bf', opacity: 0.07, bottom: '8%', right: '6%', transform: 'rotate(18deg)' }}>✦</span>
-      <svg className="doodle hidden md:block" style={{ bottom: '5%', left: '12%', opacity: 0.05 }} width="460" height="22" viewBox="0 0 460 22" fill="none">
-        <path d="M0 11 Q29 2 58 11 Q87 20 116 11 Q145 2 174 11 Q203 20 232 11 Q261 2 290 11 Q319 20 348 11 Q377 2 406 11 Q435 20 460 11" stroke="#2dd4bf" strokeWidth="3" fill="none" strokeLinecap="round"/>
-      </svg>
+      <span className="doodle font-caveat" style={{ fontSize: '2rem', color: '#4a57c4', opacity: 0.08, bottom: '16%', left: '5%', transform: 'rotate(-12deg)' }}>✦</span>
+      <span className="doodle font-caveat" style={{ fontSize: '1.7rem', color: '#14a08a', opacity: 0.08, bottom: '20%', right: '7%', transform: 'rotate(18deg)' }}>✦</span>
 
-      {/* ── Content ── */}
-      <div className="relative z-10 w-full max-w-lg md:max-w-5xl flex flex-col items-center">
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: 960, margin: '0 auto' }}>
 
-        {/* Header — scales via clamp, no breakpoint jump */}
-        <h1 className="font-caveat font-bold text-center leading-none"
-          style={{ fontSize: 'clamp(2.4rem, 6vw, 5.5rem)', color: '#a855f7' }}>
-          Absurd Truths
-        </h1>
-        <svg width="200" height="12" viewBox="0 0 280 14" fill="none" className="mt-1">
-          <path d="M0 7 Q35 1 70 7 Q105 13 140 7 Q175 1 210 7 Q245 13 280 7" stroke="#2dd4bf" strokeWidth="3" fill="none" strokeLinecap="round"/>
-        </svg>
-        <p className="font-caveat italic text-center mt-1" style={{ fontSize: 'clamp(1rem, 2.5vw, 1.5rem)', color: '#94a3b8' }}>
-          a game of beautiful lies
-        </p>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 8 }}>
+          <h1 className="font-caveat" style={{ fontWeight: 700, fontSize: 'clamp(2.6rem,7vw,4.4rem)', color: '#d8401e', lineHeight: 1, transform: 'rotate(-1deg)', margin: 0 }}>
+            Truthsayer
+          </h1>
+          <svg width="210" height="13" viewBox="0 0 280 14" fill="none" style={{ display: 'block', margin: '4px auto 0' }}>
+            <path d="M0 7 Q35 1 70 7 Q105 13 140 7 Q175 1 210 7 Q245 13 280 7" stroke="#6a9a26" strokeWidth="3" fill="none" strokeLinecap="round"/>
+          </svg>
+          <p className="font-caveat" style={{ fontStyle: 'italic', fontWeight: 600, fontSize: 'clamp(1.05rem,2.6vw,1.5rem)', color: '#94a3b8', marginTop: 2 }}>
+            a game of beautiful lies
+          </p>
+          <p className="font-caveat" style={{ fontWeight: 700, fontSize: 'clamp(1.5rem,3.4vw,2.1rem)', color: '#64748b', marginTop: 16, marginBottom: 0, transform: 'rotate(0.5deg)' }}>
+            Pick a pack.
+          </p>
+          <p className="font-inter" style={{ fontWeight: 500, fontSize: 'clamp(0.78rem,1.8vw,0.95rem)', color: '#94a3b8', marginTop: 6 }}>
+            every deck is 80% true and 100% ridiculous
+          </p>
+        </div>
 
-        {!showSettings ? (
-          <>
-            {/* Mobile only: compact 2×2 grid */}
-            <div className="md:hidden w-full">
-              <MobileTiles />
-            </div>
-
-            {/* Desktop only: illustrated card row */}
-            <div className="hidden md:flex items-stretch gap-3 w-full mt-10">
-              <Card1 />
-              <ArrowRight color="#a855f7" />
-              <Card2 />
-              <ArrowRight color="#2dd4bf" />
-              <Card3 />
-              <ArrowRight color="#a855f7" />
-              <Card4 />
-            </div>
-
-            {/* Doodle button */}
-            <div className="mt-5 md:mt-10 w-full md:w-auto flex justify-center">
-              <button
-                onClick={() => { posthog.capture('setup_opened'); setShowSettings(true) }}
-                className="btn-press font-caveat font-bold text-white relative w-full md:w-auto"
-                style={{
-                  fontSize: 'clamp(1.4rem, 3vw, 2rem)',
-                  padding: 'clamp(14px, 2.5vw, 22px) clamp(36px, 6vw, 88px)',
-                  background: '#a855f7',
-                  border: '3px solid #7c3aed',
-                  borderRadius: '8px 26px 6px 22px / 22px 6px 26px 8px',
-                  boxShadow: '5px 5px 0 #7c3aed',
-                  transform: 'rotate(-1deg)',
-                  cursor: 'pointer',
-                }}
-              >
-                Start a Game
-              </button>
-            </div>
-
-            <p className="font-inter text-center mt-3" style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.875rem)', color: '#cbd5e1' }}>
-              6–8 players · no phones needed · just beautiful lies
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="font-caveat font-semibold mt-3 md:mt-5" style={{ fontSize: 'clamp(2.2rem, 3vw, 1.75rem)', color: '#64748b' }}>
-              Set up your game
-            </p>
-
-            {/* Deck selector */}
-            <div className="flex gap-3 w-full mt-5">
-              {([
-                { key: 'absurd-truths', label: 'Absurd Truths', sub: 'weird English words', on: '#a855f7', off: '#e9d5ff', bg: '#f5f3ff', color: '#7c3aed' },
-                { key: 'chinese-sayings', label: 'Chinese Sayings', sub: 'ancient wisdom & slang', on: '#2dd4bf', off: '#99f6e4', bg: '#f0fdfa', color: '#0f766e' },
-                { key: 'medical', label: 'Medical Terms', sub: 'syndromes & signs', on: '#f59e0b', off: '#fde68a', bg: '#fffbeb', color: '#92400e' },
-              ] as const).map(({ key, label, sub, on, off, bg, color }) => (
-                <button
-                  key={key}
-                  onClick={() => { posthog.capture('deck_selected', { deck_type: key }); setSelectedDeck(key) }}
-                  className="flex-1 flex flex-col justify-center rounded-2xl border-2 transition-all"
-                  style={{
-                    padding: '10px 10px 8px',
-                    borderColor: selectedDeck === key ? on : off,
-                    background: selectedDeck === key ? bg : '#fff',
-                  }}
-                >
-                  <span className="font-caveat font-bold leading-tight" style={{ fontSize: 'clamp(1.5rem, 2.2vw, 1.15rem)', color }}>
-                    {label}
-                  </span>
-                  <span className="font-inter" style={{ fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4, marginTop: 2 }}>
-                    {sub}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* Reels */}
-            <div className="flex flex-row gap-4 md:gap-12 mt-3 md:mt-5 w-full justify-center md:max-w-[500px] md:mx-auto">
-              <Reel
-                label="Rounds"
-                labelFull="How many rounds?"
-                ref={roundsRef}
-                options={ROUND_OPTIONS.map(String)}
-                accentColor="#a855f7"
-                highlightBg="#f5f3ff"
-                highlightBorder="#ddd6fe"
-                borderColor="#e9d5ff"
+        {/* Deck shelf */}
+        <section style={{ marginTop: 26 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '0 4px 16px' }}>
+            <span className="ts-pack-tag">🎉 Eight packs of nonsense</span>
+            <span style={{ flex: 1, height: 0, borderTop: '2px dashed #e2e8f0' }} />
+            <span style={{ fontWeight: 700, fontSize: '0.78rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>pick one</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 18 }}>
+            {DECKS.map((deck, i) => (
+              <DeckCard
+                key={deck.key}
+                deck={deck}
+                selected={selectedDeck === deck.key}
+                onSelect={() => handleDeckSelect(deck)}
+                tilt={TILTS[i]}
               />
-              <Reel
-                label="Timer"
-                labelFull="Reading timer?"
-                ref={timerRef}
-                options={TIMER_OPTIONS.map(n => (n === 0 ? 'None' : `${n}s`))}
-                accentColor="#2dd4bf"
-                highlightBg="#f0fdfa"
-                highlightBorder="#99f6e4"
-                borderColor="#99f6e4"
-              />
-            </div>
+            ))}
+          </div>
+        </section>
 
-            {/* Start button */}
-            <div className="mt-4 md:mt-6 w-full md:w-auto flex justify-center">
-              <button
-                onClick={handleStart}
-                className="btn-press font-caveat font-bold text-white w-full md:w-auto"
-                style={{
-                  fontSize: 'clamp(1.3rem, 3vw, 2rem)',
-                  padding: 'clamp(11px, 2vw, 18px) clamp(36px, 6vw, 88px)',
-                  background: '#a855f7',
-                  border: '3px solid #7c3aed',
-                  borderRadius: '22px 8px 26px 6px / 6px 22px 8px 26px',
-                  boxShadow: '5px 5px 0 #7c3aed',
-                  transform: 'rotate(0.8deg)',
-                  cursor: 'pointer',
-                }}
-              >
-                LET&apos;S GO
-              </button>
-            </div>
+        {/* Rounds + Timer */}
+        <div style={{
+          display: 'flex',
+          gap: 18,
+          marginTop: 30,
+          padding: 'clamp(14px,2.5vw,18px) clamp(12px,2vw,16px)',
+          borderRadius: 20,
+          border: '2px solid #e2e8f0',
+          background: '#FFF1D6',
+        }}>
+          <OptionRow label="How many rounds?" options={ROUND_OPTIONS} value={rounds} onChange={setRounds} />
+          <div style={{ width: 2, background: '#e2e8f0', borderRadius: 2, flexShrink: 0 }} />
+          <OptionRow
+            label="Reading timer?"
+            options={TIMER_OPTIONS}
+            value={timer}
+            onChange={setTimer}
+            fmt={o => o === 0 ? 'None' : `${o}s`}
+          />
+        </div>
+      </div>
 
-            <button
-              onClick={() => { posthog.capture('setup_back_clicked'); setShowSettings(false) }}
-              className="font-caveat mt-3"
-              style={{ fontSize: 'clamp(0.95rem, 2vw, 1.2rem)', color: '#94a3b8' }}
-            >
-              ← back
-            </button>
-          </>
-        )}
+      {/* Sticky dock */}
+      <div
+        data-deck={selectedDeck}
+        style={{
+          position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 20,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+          padding: 'clamp(12px,2vw,14px) clamp(16px,5vw,40px)',
+          background: '#FFF1D6',
+          borderTop: '2.5px solid var(--deck-border)',
+          boxShadow: '0 -6px 22px rgba(63,42,20,0.08)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+          <div style={{
+            width: 46, height: 46, flexShrink: 0, borderRadius: 14,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem',
+            background: 'var(--deck-soft)', border: '2px solid var(--deck-border)',
+          }}>
+            {selected.glyph}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.62rem', letterSpacing: '.06em', textTransform: 'uppercase', color: '#94a3b8' }}>
+              Playing with
+            </div>
+            <div className="font-caveat" style={{ fontWeight: 700, fontSize: '1.5rem', lineHeight: 1, color: 'var(--deck-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {selected.title}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={handleStart}
+          className="btn-press font-caveat"
+          style={{
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+            fontWeight: 700,
+            fontSize: 'clamp(1.2rem,3vw,1.7rem)',
+            lineHeight: 1,
+            color: 'var(--deck-on-accent)',
+            background: 'var(--deck-accent)',
+            border: '3px solid var(--deck-shadow)',
+            borderRadius: '8px 26px 6px 22px / 22px 6px 26px 8px',
+            boxShadow: '4px 4px 0 var(--deck-shadow)',
+            transform: 'rotate(-1deg)',
+            padding: 'clamp(10px,2vw,13px) clamp(22px,5vw,46px)',
+            cursor: 'pointer',
+          }}
+        >
+          LET&apos;S GO →
+        </button>
       </div>
     </div>
   )
 }
-

@@ -54,10 +54,10 @@ export default function VotingPage() {
     : ''
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFFDF7' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
       <div className="w-full max-w-sm space-y-6 text-center">
         <div>
-          <p className="font-caveat font-bold text-3xl" style={{ color: '#a855f7' }}>
+          <p className="font-caveat font-bold text-3xl" style={{ color: '#d8401e' }}>
             Voting Time
           </p>
           <p className="font-inter text-sm mt-1" style={{ color: '#94a3b8' }}>
@@ -71,7 +71,7 @@ export default function VotingPage() {
               Who do you think gave the real answer?
             </p>
             {votedFor ? (
-              <p className="font-inter text-sm" style={{ color: '#2dd4bf' }}>
+              <p className="font-inter text-sm" style={{ color: '#6a9a26' }}>
                 You voted for {targetName}. Waiting for phase to advance...
               </p>
             ) : (

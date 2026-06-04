@@ -57,10 +57,10 @@ export default function WaitingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFFDF7' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
       <div className="w-full max-w-sm space-y-6 text-center">
         <div>
-          <p className="font-caveat font-bold text-3xl" style={{ color: '#a855f7' }}>
+          <p className="font-caveat font-bold text-3xl" style={{ color: '#d8401e' }}>
             Waiting Room
           </p>
           <p className="font-inter text-sm mt-1" style={{ color: '#94a3b8' }}>
@@ -80,10 +80,10 @@ export default function WaitingPage() {
               {selectedDeck.description}
             </p>
             <div className="flex gap-3 mt-2">
-              <span className="font-inter text-xs font-semibold rounded-full px-2 py-0.5" style={{ background: '#f0fdfa', color: '#0f766e' }}>
+              <span className="font-inter text-xs font-semibold rounded-full px-2 py-0.5" style={{ background: '#f4faea', color: '#0f766e' }}>
                 {room.config.timerSecs}s timer
               </span>
-              <span className="font-inter text-xs font-semibold rounded-full px-2 py-0.5" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
+              <span className="font-inter text-xs font-semibold rounded-full px-2 py-0.5" style={{ background: '#fff5f1', color: '#a82d12' }}>
                 {room.config.roundCount} rounds
               </span>
             </div>
@@ -117,7 +117,7 @@ export default function WaitingPage() {
               disabled={!canStart || starting}
               className="w-full py-4 rounded-xl font-caveat font-bold text-xl shadow-md
                          transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: '#2dd4bf', color: '#0f4c4c' }}
+              style={{ background: '#6a9a26', color: '#2a3f10' }}
             >
               {starting
                 ? 'Starting...'

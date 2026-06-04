@@ -42,18 +42,28 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFFDF7' }}>
-      <h1 className="font-caveat font-bold mb-2" style={{ fontSize: '3rem', color: '#a855f7' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
+      <h1 className="font-caveat font-bold mb-2" style={{ fontSize: '3rem', color: '#d8401e', transform: 'rotate(-1deg)' }}>
         Absurd Truths
       </h1>
-      <p className="font-inter text-sm mb-12" style={{ color: '#94a3b8' }}>A game of beautiful lies</p>
+      <svg width="160" height="10" viewBox="0 0 280 14" fill="none" className="mb-1">
+        <path d="M0 7 Q35 1 70 7 Q105 13 140 7 Q175 1 210 7 Q245 13 280 7" stroke="#6a9a26" strokeWidth="3" fill="none" strokeLinecap="round"/>
+      </svg>
+      <p className="font-inter text-sm mb-12" style={{ color: '#94a3b8' }}>a game of beautiful lies</p>
 
       <div className="w-full max-w-sm space-y-6">
         <button
           onClick={() => router.push('/create')}
-          className="w-full py-3 px-6 rounded-xl font-caveat font-bold text-xl shadow-md
+          className="w-full py-3 px-6 font-caveat font-bold text-xl
                      transition-all active:scale-[0.97]"
-          style={{ background: '#a855f7', color: '#ffffff' }}
+          style={{
+            background: '#d8401e',
+            color: '#fff5f1',
+            border: '3px solid #a82d12',
+            borderRadius: '8px 26px 6px 22px / 22px 6px 26px 8px',
+            boxShadow: '5px 5px 0 #a82d12',
+            transform: 'rotate(-0.5deg)',
+          }}
         >
           Create Room
         </button>
@@ -63,7 +73,7 @@ export default function Home() {
             <div className="w-full border-t" style={{ borderColor: '#e2e8f0' }} />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="px-2 font-inter" style={{ background: '#FFFDF7', color: '#94a3b8' }}>
+            <span className="px-2 font-inter" style={{ background: '#FFF9EC', color: '#94a3b8' }}>
               or join with code
             </span>
           </div>
@@ -79,14 +89,14 @@ export default function Home() {
             maxLength={6}
             className="flex-1 px-4 py-3 rounded-xl bg-white text-center text-lg tracking-widest uppercase
                        font-inter focus:outline-none focus:ring-2"
-            style={{ border: '1px solid #e2e8f0', color: '#334155' }}
+            style={{ border: '2px solid #e2e8f0', color: '#334155' }}
           />
           <button
             onClick={handleJoin}
             disabled={joining || !roomCode.trim()}
             className="px-6 py-3 rounded-xl font-caveat font-bold text-lg
                        transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: '#2dd4bf', color: '#0f4c4c' }}
+            style={{ background: '#6a9a26', color: '#f4faea', border: '2px solid #4f7a1c' }}
           >
             {joining ? '...' : 'Join'}
           </button>

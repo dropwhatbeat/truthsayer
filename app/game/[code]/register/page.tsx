@@ -121,17 +121,17 @@ export default function RegisterPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFFDF7' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
         <p className="font-inter" style={{ color: '#94a3b8' }}>Joining room...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFFDF7' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <p className="font-caveat font-bold" style={{ fontSize: '2rem', color: '#a855f7' }}>
+          <p className="font-caveat font-bold" style={{ fontSize: '2rem', color: '#d8401e' }}>
             Enter Your Name
           </p>
           <p className="font-inter text-sm mt-1" style={{ color: '#94a3b8' }}>
@@ -156,7 +156,7 @@ export default function RegisterPage() {
             disabled={submitting || !name.trim()}
             className="w-full py-3 px-6 rounded-xl font-caveat font-bold text-xl shadow-md
                        transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: '#a855f7', color: '#ffffff' }}
+            style={{ background: '#d8401e', color: '#ffffff' }}
           >
             {submitting ? 'Joining...' : 'Join Game'}
           </button>

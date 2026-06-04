@@ -62,12 +62,12 @@ export default function EndPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFFDF7' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
       <div className="w-full max-w-sm space-y-6 text-center">
         <div className="text-6xl mb-2">🏆</div>
 
         <div>
-          <h2 className="font-caveat font-bold text-4xl" style={{ color: '#a855f7', lineHeight: 1.1 }}>
+          <h2 className="font-caveat font-bold text-4xl" style={{ color: '#d8401e', lineHeight: 1.1 }}>
             Game Over!
           </h2>
 
@@ -100,7 +100,7 @@ export default function EndPage() {
         )}
 
         <svg width="160" height="12" viewBox="0 0 160 12" fill="none" className="mx-auto">
-          <path d="M0 6 Q20 0 40 6 Q60 12 80 6 Q100 0 120 6 Q140 12 160 6" stroke="#2dd4bf" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+          <path d="M0 6 Q20 0 40 6 Q60 12 80 6 Q100 0 120 6 Q140 12 160 6" stroke="#6a9a26" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
         </svg>
 
         {isHost ? (
@@ -109,7 +109,7 @@ export default function EndPage() {
             disabled={starting}
             className="w-full py-4 rounded-xl font-caveat font-bold text-xl shadow-md
                        transition-all active:scale-[0.97] disabled:opacity-50"
-            style={{ background: '#2dd4bf', color: '#0f4c4c' }}
+            style={{ background: '#6a9a26', color: '#2a3f10' }}
           >
             {starting ? 'Resetting...' : 'Play Again'}
           </button>
@@ -122,7 +122,7 @@ export default function EndPage() {
         <button
           onClick={handleBackToLobby}
           className="w-full py-3 rounded-xl font-caveat font-bold text-lg border-2 transition-all active:scale-[0.97]"
-          style={{ color: '#a855f7', borderColor: '#a855f7', background: 'transparent' }}
+          style={{ color: '#d8401e', borderColor: '#d8401e', background: 'transparent' }}
         >
           Back to Lobby
         </button>

@@ -58,11 +58,11 @@ export default function RevealPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-5 py-10" style={{ background: '#FFFDF7' }}>
+    <div className="min-h-screen flex flex-col items-center px-5 py-10" style={{ background: '#FFF9EC' }}>
       <div className="w-full max-w-md space-y-5">
 
         {/* Header */}
-        <p className="font-caveat font-bold text-3xl text-center" style={{ color: '#a855f7' }}>
+        <p className="font-caveat font-bold text-3xl text-center" style={{ color: '#d8401e' }}>
           Round {round?.roundNumber ?? '?'} Results
         </p>
 
@@ -95,7 +95,7 @@ export default function RevealPage() {
             <p className="font-inter text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#94a3b8' }}>
               Truthsayer
             </p>
-            <p className="font-caveat font-bold text-xl" style={{ color: '#2dd4bf' }}>
+            <p className="font-caveat font-bold text-xl" style={{ color: '#6a9a26' }}>
               {honestPlayer?.name || '—'}
             </p>
           </div>
@@ -103,7 +103,7 @@ export default function RevealPage() {
             <p className="font-inter text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#94a3b8' }}>
               Judge voted for
             </p>
-            <p className="font-caveat font-bold text-xl" style={{ color: '#a855f7' }}>
+            <p className="font-caveat font-bold text-xl" style={{ color: '#d8401e' }}>
               {votedFor?.name || '—'}
             </p>
           </div>
@@ -119,7 +119,7 @@ export default function RevealPage() {
         >
           <span style={{ fontSize: '2rem', lineHeight: 1 }}>{judgeCorrect ? '🎯' : '🙈'}</span>
           <div>
-            <p className="font-caveat font-bold text-lg" style={{ color: judgeCorrect ? '#b45309' : '#7c3aed' }}>
+            <p className="font-caveat font-bold text-lg" style={{ color: judgeCorrect ? '#b45309' : '#a82d12' }}>
               {judgeCorrect ? 'Judge got it!' : 'Bluff successful!'}
             </p>
             <p className="font-inter text-xs mt-0.5" style={{ color: '#64748b' }}>
@@ -146,7 +146,7 @@ export default function RevealPage() {
           disabled={submitting}
           className="w-full py-4 rounded-xl font-caveat font-bold text-xl shadow-md
                      transition-all active:scale-[0.97] disabled:opacity-50"
-          style={{ background: '#2dd4bf', color: '#0f4c4c' }}
+          style={{ background: '#6a9a26', color: '#2a3f10' }}
         >
           {submitting ? 'Advancing...' : 'Next Round →'}
         </button>

@@ -29,9 +29,9 @@ export default function CategoryPills({ categories }: Props) {
           style={{
             padding: '7px 18px',
             borderRadius: 999,
-            border: '2px solid #ddd6fe',
-            background: '#f5f3ff',
-            color: '#6d28d9',
+            border: '2px solid var(--deck-border, #e2e8f0)',
+            background: 'var(--deck-pale, #f8fafc)',
+            color: 'var(--deck-ink, #334155)',
             fontSize: 'clamp(0.8rem, 1.8vw, 1rem)',
           }}
         >

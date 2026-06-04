@@ -79,10 +79,10 @@ export default function ReadingPage() {
     : []
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFFDF7' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
       <div className="w-full max-w-sm space-y-6 text-center">
         <div>
-          <p className="font-caveat font-bold text-3xl" style={{ color: '#a855f7' }}>
+          <p className="font-caveat font-bold text-3xl" style={{ color: '#d8401e' }}>
             Round {round?.roundNumber ?? '?'}
           </p>
           <p className="font-inter text-sm mt-1" style={{ color: '#94a3b8' }}>
@@ -137,7 +137,7 @@ export default function ReadingPage() {
 
         {isJudge ? (
           submitted ? (
-            <p className="font-inter text-sm" style={{ color: '#2dd4bf' }}>
+            <p className="font-inter text-sm" style={{ color: '#6a9a26' }}>
               Voting started. Waiting for phase to advance...
             </p>
           ) : (
@@ -146,7 +146,7 @@ export default function ReadingPage() {
               disabled={submitting || (hasTimer && timeLeft > 0)}
               className="w-full py-4 rounded-xl font-caveat font-bold text-xl shadow-md
                          transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: '#2dd4bf', color: '#0f4c4c' }}
+              style={{ background: '#6a9a26', color: '#2a3f10' }}
             >
               {submitting ? 'Starting...' : hasTimer && timeLeft > 0 ? `Wait — ${timeLeft}s` : 'Start Voting'}
             </button>

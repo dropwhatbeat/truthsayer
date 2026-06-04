@@ -3,7 +3,11 @@
     "allow": [
       "Bash(npm run:*)",
       "Bash(echo \"Dev server PID: $!\")",
-      "Bash(kill 71761:*)"
+      "Bash(kill 71761:*)",
+      "Bash(mkdir -p /tmp/design-extract)",
+      "Bash(tar -xf /tmp/design -C /tmp/design-extract)",
+      "Read(//tmp/**)",
+      "Bash(npx tsc *)"
     ]
   }
 }

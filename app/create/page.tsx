@@ -8,24 +8,24 @@ import Reel, { REEL_ITEM_H, getReelValue } from '@/components/absurd-truths/Reel
 const DECKS = [
   {
     key: 'absurd-truths' as DeckType,
-    emoji: '🤪',
+    emoji: '🧠',
     label: 'Absurd Truths',
-    sub: 'Chaotic prompts & punchlines',
-    on: '#a855f7', off: '#e9d5ff', bg: '#f5f3ff', color: '#7c3aed', subColor: '#a78bfa',
+    sub: 'real words that sound completely fake',
+    on: '#d8401e', off: '#ffc8b6', bg: '#fff5f1', color: '#7e220d', subColor: '#a82d12',
   },
   {
     key: 'chinese-sayings' as DeckType,
     emoji: '🐉',
     label: 'Chinese Sayings',
-    sub: 'Ancient wisdom & cultural curveballs',
-    on: '#2dd4bf', off: '#99f6e4', bg: '#f0fdfa', color: '#0f766e', subColor: '#5eead4',
+    sub: 'ancient wisdom, gloriously misremembered',
+    on: '#6a9a26', off: '#cfe89c', bg: '#f4faea', color: '#2f4a10', subColor: '#4f7a1c',
   },
   {
     key: 'medical' as DeckType,
     emoji: '🩺',
-    label: 'Medical Terms',
-    sub: 'Clinical jargon & health nonsense',
-    on: '#f59e0b', off: '#fde68a', bg: '#fffbeb', color: '#92400e', subColor: '#fbbf24',
+    label: 'Medical Marvels',
+    sub: "syndromes you'll swear we made up",
+    on: '#f5b820', off: '#ffe084', bg: '#fffaeb', color: '#6b3d05', subColor: '#8a4f0a',
   },
 ]
 
@@ -75,7 +75,7 @@ export default function CreateRoomPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10" style={{ background: '#FFFDF7' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10" style={{ background: '#FFF9EC' }}>
       <div className="w-full max-w-sm">
 
         {/* Header */}
@@ -86,7 +86,7 @@ export default function CreateRoomPage() {
         >
           ← back
         </button>
-        <h2 className="font-caveat font-bold text-3xl mb-1" style={{ color: '#a855f7' }}>
+        <h2 className="font-caveat font-bold text-3xl mb-1" style={{ color: '#d8401e' }}>
           Set up your game
         </h2>
         <p className="font-inter text-sm mb-8" style={{ color: '#94a3b8' }}>
@@ -139,19 +139,19 @@ export default function CreateRoomPage() {
             ref={timerRef}
             label="Timer"
             options={TIMER_OPTIONS.map((n) => (n === 0 ? 'None' : `${n}s`))}
-            accentColor="#2dd4bf"
-            highlightBg="#f0fdfa"
-            highlightBorder="#99f6e4"
-            borderColor="#99f6e4"
+            accentColor="#6a9a26"
+            highlightBg="#f4faea"
+            highlightBorder="#cfe89c"
+            borderColor="#cfe89c"
           />
           <Reel
             ref={roundsRef}
             label="Rounds"
             options={ROUND_OPTIONS.map(String)}
-            accentColor="#a855f7"
-            highlightBg="#f5f3ff"
-            highlightBorder="#ddd6fe"
-            borderColor="#e9d5ff"
+            accentColor="#d8401e"
+            highlightBg="#fff5f1"
+            highlightBorder="#ffc8b6"
+            borderColor="#ffc8b6"
           />
         </div>
 
@@ -159,9 +159,18 @@ export default function CreateRoomPage() {
         <button
           onClick={handleCreate}
           disabled={creating}
-          className="w-full py-4 rounded-xl font-caveat font-bold text-xl shadow-md
+          className="w-full font-caveat font-bold text-xl
                      transition-all active:scale-[0.97] disabled:opacity-50"
-          style={{ background: '#a855f7', color: '#ffffff' }}
+          style={{
+            padding: '16px 24px',
+            background: '#d8401e',
+            color: '#fff5f1',
+            border: '3px solid #a82d12',
+            borderRadius: '8px 26px 6px 22px / 22px 6px 26px 8px',
+            boxShadow: '5px 5px 0 #a82d12',
+            transform: 'rotate(-0.5deg)',
+            cursor: 'pointer',
+          }}
         >
           {creating ? 'Creating...' : 'Create Room →'}
         </button>

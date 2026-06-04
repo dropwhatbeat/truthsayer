@@ -72,3 +72,181 @@ body {
   transform: scale(0.97);
   transition: all 0.1s;
 }
+
+/* ============================================================
+   BRAND PALETTE — Warm crayon. Source of truth for design system.
+   ============================================================ */
+:root {
+  --ts-mute-1: #64748b;
+  --ts-mute-2: #94a3b8;
+  --ts-rule:   #e2e8f0;
+  --ts-card:   #FFF1D6;
+  --ts-ink:    #1e293b;
+}
+
+/* ============================================================
+   DECK SYSTEM
+   Scope with [data-deck="key"]; .ts-deck-card reads var(--deck-*).
+   Default = Absurd Truths (tomato).
+   ============================================================ */
+:root {
+  --deck-accent:    #d8401e;
+  --deck-shadow:    #a82d12;
+  --deck-ink:       #7e220d;
+  --deck-soft:      #ffe5dc;
+  --deck-pale:      #fff5f1;
+  --deck-border:    #ffc8b6;
+  --deck-on-accent: #fff5f1;
+}
+[data-deck="absurd-truths"] {
+  --deck-accent: #d8401e; --deck-shadow: #a82d12; --deck-ink: #7e220d;
+  --deck-soft: #ffe5dc;   --deck-pale: #fff5f1;   --deck-border: #ffc8b6;
+  --deck-on-accent: #fff5f1;
+}
+[data-deck="chinese-sayings"] {
+  --deck-accent: #6a9a26; --deck-shadow: #4f7a1c; --deck-ink: #2f4a10;
+  --deck-soft: #e7f4cd;   --deck-pale: #f4faea;   --deck-border: #cfe89c;
+  --deck-on-accent: #f4faea;
+}
+[data-deck="medical"] {
+  --deck-accent: #f5b820; --deck-shadow: #8a4f0a; --deck-ink: #6b3d05;
+  --deck-soft: #fff1c2;   --deck-pale: #fffaeb;   --deck-border: #ffe084;
+  --deck-on-accent: #5a3a02;
+}
+[data-deck="science"] {
+  --deck-accent: #14a08a; --deck-shadow: #0c6b5c; --deck-ink: #0a4a40;
+  --deck-soft: #c7f0e7;   --deck-pale: #effaf7;   --deck-border: #97e0d2;
+  --deck-on-accent: #effaf7;
+}
+[data-deck="history"] {
+  --deck-accent: #b56a3d; --deck-shadow: #80451f; --deck-ink: #5a3014;
+  --deck-soft: #f0dcc8;   --deck-pale: #fbf2e8;   --deck-border: #e3bfa0;
+  --deck-on-accent: #fbf2e8;
+}
+[data-deck="geography"] {
+  --deck-accent: #2f8fd6; --deck-shadow: #1f5d99; --deck-ink: #134266;
+  --deck-soft: #cfe9ff;   --deck-pale: #eff7ff;   --deck-border: #a8d3f2;
+  --deck-on-accent: #eff7ff;
+}
+[data-deck="art"] {
+  --deck-accent: #d6457f; --deck-shadow: #9c2b58; --deck-ink: #6e1c3d;
+  --deck-soft: #ffd6e6;   --deck-pale: #fff0f5;   --deck-border: #f5aac6;
+  --deck-on-accent: #fff0f5;
+}
+[data-deck="space"] {
+  --deck-accent: #4a57c4; --deck-shadow: #2f3a90; --deck-ink: #20275e;
+  --deck-soft: #d4d8f5;   --deck-pale: #f0f1fb;   --deck-border: #aeb6ec;
+  --deck-on-accent: #f0f1fb;
+}
+
+/* ============================================================
+   DECK CARD — reusable pack component.
+   Add data-deck="key" to scope colors.
+   Add .is-selected for the chosen state.
+   ============================================================ */
+.ts-deck-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 2.5px solid var(--deck-border);
+  border-radius: 24px;
+  background: var(--deck-pale);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  transition: transform 100ms ease, box-shadow 100ms ease, border-color 100ms ease;
+}
+.ts-deck-card:hover  { transform: rotate(var(--deck-tilt, -1deg)) translateY(-3px); }
+.ts-deck-card:active { transform: rotate(var(--deck-tilt, -1deg)) scale(0.97); opacity: 0.85; }
+.ts-deck-card.is-selected {
+  border-color: var(--deck-accent);
+  box-shadow: 5px 5px 0 var(--deck-shadow);
+}
+.ts-deck-card__top {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px 20px 12px;
+  background: var(--deck-soft);
+}
+.ts-deck-card__glyph {
+  flex-shrink: 0;
+  width: 50px; height: 50px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; line-height: 1;
+  border-radius: 14px;
+  background: var(--deck-pale);
+  border: 2px solid var(--deck-border);
+  box-shadow: 2px 2px 0 var(--deck-border);
+}
+.ts-deck-card__titles {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 1px;
+}
+.ts-deck-card__title {
+  font-family: var(--font-caveat), cursive;
+  font-weight: 700;
+  font-size: 1.4rem;
+  line-height: 1.15;
+  color: var(--deck-ink);
+}
+.ts-deck-card__sub {
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: #64748b;
+}
+.ts-deck-card__bot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--deck-pale);
+}
+.ts-deck-card__meta {
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--deck-ink);
+  opacity: 0.7;
+}
+.ts-deck-card__hints { display: flex; gap: 4px; }
+.ts-deck-card__hint  { font-size: 0.95rem; line-height: 1; }
+.ts-deck-card__check {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 26px; height: 26px;
+  border-radius: 999px;
+  background: var(--deck-accent);
+  color: var(--deck-on-accent);
+  display: none;
+  align-items: center; justify-content: center;
+  font-family: var(--font-caveat), cursive;
+  font-weight: 700; font-size: 1.05rem;
+  box-shadow: 2px 2px 0 var(--deck-shadow);
+}
+.ts-deck-card.is-selected .ts-deck-card__check { display: flex; }
+
+/* Pack shelf heading tag */
+.ts-pack-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 2px solid #e2e8f0;
+  background: #FFF1D6;
+  color: #64748b;
+  white-space: nowrap;
+}

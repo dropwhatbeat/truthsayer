@@ -66,7 +66,7 @@ export default function GameEntryPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFFDF7' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
         <p className="font-inter" style={{ color: '#94a3b8' }}>Loading game...</p>
       </div>
     )
@@ -74,9 +74,9 @@ export default function GameEntryPage() {
 
   if (reconnectError) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFFDF7' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
         <div className="text-center space-y-4">
-          <p className="font-caveat text-2xl" style={{ color: '#a855f7' }}>Reconnection failed</p>
+          <p className="font-caveat text-2xl" style={{ color: '#d8401e' }}>Reconnection failed</p>
           <button
             onClick={() => { localStorage.removeItem('bsking-player'); router.push('/') }}
             className="px-6 py-3 rounded-xl font-semibold transition-all"
@@ -90,7 +90,7 @@ export default function GameEntryPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFFDF7' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
       <p className="font-inter" style={{ color: '#94a3b8' }}>Reconnecting...</p>
     </div>
   )
