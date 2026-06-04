@@ -59,7 +59,7 @@ export default function RevealPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center px-5 py-10" style={{ background: '#FFF9EC' }}>
-      <div className="w-full max-w-md space-y-5">
+      <div className="w-full max-w-xl space-y-5">
 
         {/* Header */}
         <p className="font-caveat font-bold text-3xl text-center" style={{ color: '#d8401e' }}>

@@ -30,7 +30,7 @@ export default function EndPage() {
   const winners = scoreEntries.filter((s) => s.score === maxScore && maxScore > 0)
   const tieCount = winners.length
 
-  async function handlePlayAgain() {
+  async function handleBackToLobby() {
     setError('')
     setStarting(true)
     try {
@@ -56,14 +56,14 @@ export default function EndPage() {
     }
   }
 
-  function handleBackToLobby() {
+  function handleLeaveGame() {
     localStorage.removeItem('bsking-player')
     router.push('/')
   }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
-      <div className="w-full max-w-sm space-y-6 text-center">
+      <div className="w-full max-w-xl space-y-6 text-center">
         <div className="text-6xl mb-2">🏆</div>
 
         <div>
@@ -105,26 +105,26 @@ export default function EndPage() {
 
         {isHost ? (
           <button
-            onClick={handlePlayAgain}
+            onClick={handleBackToLobby}
             disabled={starting}
             className="w-full py-4 rounded-xl font-caveat font-bold text-xl shadow-md
                        transition-all active:scale-[0.97] disabled:opacity-50"
             style={{ background: '#6a9a26', color: '#2a3f10' }}
           >
-            {starting ? 'Resetting...' : 'Play Again'}
+            {starting ? 'Going back...' : 'Back to Lobby'}
           </button>
         ) : (
           <p className="font-inter text-sm" style={{ color: '#94a3b8' }}>
-            Waiting for host to start a new game...
+            Waiting for host to go back to lobby...
           </p>
         )}
 
         <button
-          onClick={handleBackToLobby}
-          className="w-full py-3 rounded-xl font-caveat font-bold text-lg border-2 transition-all active:scale-[0.97]"
-          style={{ color: '#d8401e', borderColor: '#d8401e', background: 'transparent' }}
+          onClick={handleLeaveGame}
+          className="font-inter text-sm transition-all"
+          style={{ color: '#94a3b8' }}
         >
-          Back to Lobby
+          Leave game
         </button>
 
         {error && (

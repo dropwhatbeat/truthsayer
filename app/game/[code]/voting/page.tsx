@@ -55,7 +55,7 @@ export default function VotingPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
-      <div className="w-full max-w-sm space-y-6 text-center">
+      <div className="w-full max-w-xl space-y-6 text-center">
         <div>
           <p className="font-caveat font-bold text-3xl" style={{ color: '#d8401e' }}>
             Voting Time

@@ -185,7 +185,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Room not found' }, { status: 404 })
     }
 
-    let body: { playerId?: string; playerSecret?: string; deckType?: unknown }
+    let body: { playerId?: string; playerSecret?: string; deckType?: unknown; timerSecs?: unknown; roundCount?: unknown }
     try {
       body = await request.json()
     } catch {
@@ -199,8 +199,12 @@ export async function PATCH(
       )
     }
 
-    if (!isDeckType(body.deckType)) {
+    if (body.deckType !== undefined && !isDeckType(body.deckType)) {
       return NextResponse.json({ error: 'Invalid deck type' }, { status: 400 })
+    }
+
+    if (body.deckType === undefined && body.timerSecs === undefined && body.roundCount === undefined) {
+      return NextResponse.json({ error: 'No settings provided' }, { status: 400 })
     }
 
     const [player] = await db
@@ -219,14 +223,14 @@ export async function PATCH(
 
     if (room.createdBy !== player.id) {
       return NextResponse.json(
-        { error: 'Only the host can update the deck' },
+        { error: 'Only the host can update room settings' },
         { status: 403 }
       )
     }
 
     if (room.status !== 'lobby') {
       return NextResponse.json(
-        { error: 'Deck can only be updated while the room is in the lobby' },
+        { error: 'Settings can only be updated while the room is in the lobby' },
         { status: 409 }
       )
     }
@@ -236,13 +240,15 @@ export async function PATCH(
       : (room.config ?? {})
     const nextConfig = {
       ...config,
-      deckType: body.deckType as DeckType,
+      ...(isDeckType(body.deckType) ? { deckType: body.deckType as DeckType } : {}),
+      ...(typeof body.timerSecs === 'number' ? { timerSecs: body.timerSecs } : {}),
+      ...(typeof body.roundCount === 'number' ? { roundCount: body.roundCount } : {}),
     }
 
     await db
       .update(rooms)
       .set({
-        deckType: body.deckType as DeckType,
+        ...(isDeckType(body.deckType) ? { deckType: body.deckType as DeckType } : {}),
         config: JSON.stringify(nextConfig),
         updatedAt: new Date(),
       })

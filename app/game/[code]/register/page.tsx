@@ -129,7 +129,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
-      <div className="w-full max-w-sm space-y-6">
+      <div className="w-full max-w-xl space-y-6">
         <div className="text-center">
           <p className="font-caveat font-bold" style={{ fontSize: '2rem', color: '#d8401e' }}>
             Enter Your Name

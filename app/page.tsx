@@ -8,6 +8,30 @@ export default function Home() {
   const [roomCode, setRoomCode] = useState('')
   const [error, setError] = useState('')
   const [joining, setJoining] = useState(false)
+  const [creating, setCreating] = useState(false)
+
+  async function handleCreate() {
+    setError('')
+    setCreating(true)
+    try {
+      const res = await fetch('/api/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Failed to create room')
+        return
+      }
+      const data = await res.json()
+      router.push(`/game/${data.code}/register`)
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setCreating(false)
+    }
+  }
 
   async function handleJoin() {
     const code = roomCode.trim().toUpperCase()
@@ -51,11 +75,12 @@ export default function Home() {
       </svg>
       <p className="font-inter text-sm mb-12" style={{ color: '#94a3b8' }}>a game of beautiful lies</p>
 
-      <div className="w-full max-w-sm space-y-6">
+      <div className="w-full max-w-xl space-y-6">
         <button
-          onClick={() => router.push('/create')}
+          onClick={handleCreate}
+          disabled={creating}
           className="w-full py-3 px-6 font-caveat font-bold text-xl
-                     transition-all active:scale-[0.97]"
+                     transition-all active:scale-[0.97] disabled:opacity-60"
           style={{
             background: '#d8401e',
             color: '#fff5f1',
@@ -65,7 +90,7 @@ export default function Home() {
             transform: 'rotate(-0.5deg)',
           }}
         >
-          Create Room
+          {creating ? 'Creating...' : 'Create Room'}
         </button>
 
         <div className="relative">

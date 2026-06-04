@@ -19,6 +19,10 @@ body {
   user-select: none;
 }
 
+/* Hide scrollbar (used by carousel etc.) */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 /* Scroll reel */
 .reel {
   overflow-y: scroll;
