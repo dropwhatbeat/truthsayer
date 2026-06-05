@@ -23,7 +23,7 @@ interface DeckInfo {
 
 const DECKS: DeckInfo[] = [
   { key: 'absurd-truths',   glyph: '🧠', title: 'Absurd Truths',   sub: 'real words that sound completely fake',            hints: ['🦑','💃','🍳'], count: 48 },
-  { key: 'chinese-sayings', glyph: '🐉', title: 'Chinese Sayings',  sub: 'ancient wisdom, gloriously misremembered',          hints: ['🥟','📜','🀄'], count: 40 },
+  { key: 'chinese-sayings', glyph: '🏮', title: 'Chinese 成语',     sub: 'four characters hiding a thousand years of chaos',   hints: ['🀄','龙','📜'], count: 64 },
   { key: 'medical',         glyph: '🩺', title: 'Medical Marvels',  sub: "syndromes you'll swear we made up",                 hints: ['🧠','🦴','💊'], count: 36 },
   { key: 'science',         glyph: '🔬', title: 'Mad Science',      sub: 'real phenomena, gloriously unhinged',               hints: ['🧪','🦠','🌋'], count: 44, comingSoon: true },
   { key: 'history',         glyph: '📜', title: 'Bad History',      sub: 'things that absolutely happened. probably.',        hints: ['🏛️','⚔️','👑'], count: 42, comingSoon: true },
@@ -155,6 +155,14 @@ export default function SetupScreen({ onStart }: Props) {
       {/* Background doodles */}
       <span className="doodle font-caveat font-bold" style={{ fontSize: 'clamp(6rem,18vw,18rem)', color: '#d8401e', opacity: 0.04, top: '-3%', left: '-2%', transform: 'rotate(-14deg)', lineHeight: 1 }}>?</span>
       <span className="doodle font-caveat font-bold" style={{ fontSize: 'clamp(5rem,12vw,13rem)', color: '#6a9a26', opacity: 0.05, top: '1%', right: '2%', transform: 'rotate(10deg)', lineHeight: 1 }}>!</span>
+
+      {/* Chinese deck doodles */}
+      {selectedDeck === 'chinese-sayings' && <>
+        <span className="doodle" style={{ fontFamily: 'serif', fontWeight: 900, fontSize: 'clamp(7rem,20vw,20rem)', color: '#c8392a', opacity: 0.045, top: '-2%', left: '-1%', transform: 'rotate(-8deg)', lineHeight: 1 }}>文</span>
+        <span className="doodle" style={{ fontFamily: 'serif', fontWeight: 900, fontSize: 'clamp(5rem,13vw,14rem)', color: '#c8392a', opacity: 0.04, top: '3%', right: '1%', transform: 'rotate(7deg)', lineHeight: 1 }}>道</span>
+        <span className="doodle" style={{ fontFamily: 'serif', fontWeight: 900, fontSize: 'clamp(4rem,10vw,11rem)', color: '#8c2820', opacity: 0.04, top: '48%', left: '0%', transform: 'rotate(-5deg)', lineHeight: 1 }}>义</span>
+        <span className="doodle" style={{ fontFamily: 'serif', fontWeight: 900, fontSize: 'clamp(6rem,16vw,17rem)', color: '#c8392a', opacity: 0.035, bottom: '14%', right: '0%', transform: 'rotate(11deg)', lineHeight: 1 }}>龙</span>
+      </>}
       <span className="doodle font-caveat" style={{ fontStyle: 'italic', fontSize: 'clamp(1.6rem,4vw,4rem)', color: '#2f8fd6', opacity: 0.06, top: '52%', left: '1%', transform: 'rotate(-8deg)' }}>pick one…</span>
       <svg className="doodle" style={{ top: '7%', left: '42%', opacity: 0.06 }} width="52" height="52" viewBox="0 0 38 38" fill="none">
         <path d="M19 2 L22.5 12.5 L34 12.5 L25 19.5 L28.5 30 L19 23.5 L9.5 30 L13 19.5 L4 12.5 L15.5 12.5 Z" stroke="#f5b820" strokeWidth="2" strokeLinejoin="round"/>

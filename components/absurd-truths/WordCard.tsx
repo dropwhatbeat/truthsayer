@@ -12,7 +12,7 @@ export default function WordCard({ card }: Props) {
         style={{ background: '#FFF8EE', borderColor: '#fde68a' }}
       >
         <p
-          className="font-caveat font-bold text-gray-900 leading-tight"
+          className="font-caveat font-bold text-gray-900 leading-tight whitespace-pre-line"
           style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', overflowWrap: 'break-word' }}
         >
           {card.phrase}

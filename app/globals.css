@@ -108,9 +108,9 @@ body {
   --deck-on-accent: #fff5f1;
 }
 [data-deck="chinese-sayings"] {
-  --deck-accent: #6a9a26; --deck-shadow: #4f7a1c; --deck-ink: #2f4a10;
-  --deck-soft: #e7f4cd;   --deck-pale: #f4faea;   --deck-border: #cfe89c;
-  --deck-on-accent: #f4faea;
+  --deck-accent: #c8392a; --deck-shadow: #8c2820; --deck-ink: #5a1a12;
+  --deck-soft: #fde8e5;   --deck-pale: #fff5f4;   --deck-border: #f5b9b2;
+  --deck-on-accent: #fff5f4;
 }
 [data-deck="medical"] {
   --deck-accent: #f5b820; --deck-shadow: #8a4f0a; --deck-ink: #6b3d05;

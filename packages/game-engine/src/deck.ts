@@ -14,8 +14,8 @@ export const DECK_METADATA: Record<DeckType, DeckMetadata> = {
     description: 'Chaotic prompts and punchlines built for the core party-game flow.',
   },
   'chinese-sayings': {
-    label: 'Chinese Sayings',
-    description: 'Classic sayings, literal translations, and mischievous cultural curveballs.',
+    label: 'Chinese 成语',
+    description: 'Four characters hiding a thousand years of chaos.',
   },
   medical: {
     label: 'Medical',
