@@ -1,8 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useSelector } from '@xstate/react'
-import { usePostHog } from 'posthog-js/react'
 import type { Card } from '@bsking/game-engine'
 import type { ActorRefFrom } from 'xstate'
 import type { gameMachine } from '@bsking/game-engine'
@@ -21,8 +19,6 @@ interface Props {
 }
 
 export default function GameScreen({ actor, card, index, total, deckType }: Props) {
-  const posthog = usePostHog()
-
   const phase = useSelector(actor, (state) => {
     if (state.matches({ playing: 'waiting' })) return 'waiting'
     if (state.matches({ playing: 'reading' })) return 'reading'
@@ -37,15 +33,6 @@ export default function GameScreen({ actor, card, index, total, deckType }: Prop
   const pct = ((index + 1) / total) * 100
   const isLast = index >= total - 1
 
-  useEffect(() => {
-    posthog.capture('card_viewed', { card_index: index + 1, total_cards: total, phrase: card.phrase, deck_type: deckType })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [card.phrase, index])
-
-  function track(event: string, props?: Record<string, unknown>) {
-    posthog.capture(event, { card_index: index + 1, phrase: card.phrase, deck_type: deckType, ...props })
-  }
-
   return (
     <div className="h-screen flex flex-col" style={{ background: '#FFF9EC' }} data-deck={deckType}>
       {/* Progress bar — deck-themed */}
@@ -58,7 +45,7 @@ export default function GameScreen({ actor, card, index, total, deckType }: Prop
 
       <div className="flex justify-between items-center px-4 md:px-8 pt-3 pb-2 shrink-0">
         <button
-          onClick={() => { track('game_home_clicked'); actor.send({ type: 'END' }) }}
+          onClick={() => { actor.send({ type: 'END' }) }}
           className="btn-press font-caveat text-lg md:text-xl"
           style={{ color: '#64748b' }}
         >
@@ -80,22 +67,22 @@ export default function GameScreen({ actor, card, index, total, deckType }: Prop
 
         <div className="relative z-10 w-full max-w-3xl mx-auto flex-1 min-h-0 flex flex-col">
           {phase === 'waiting' && (
-            <WaitingPhase onShowSecret={() => { track('secret_shown'); actor.send({ type: 'SHOW_SECRET' }) }} />
+            <WaitingPhase onShowSecret={() => { actor.send({ type: 'SHOW_SECRET' }) }} />
           )}
           {phase === 'reading' && (
             <ReadingPhase answer={card.answer} timeLeft={timeLeft} timerSecs={timerSecs} />
           )}
           {phase === 'discuss' && (
             <DiscussPhase
-              onBack={() => { track('back_clicked', { from_phase: 'discuss' }); actor.send({ type: 'BACK' }) }}
-              onRevealToAll={() => { track('reveal_to_all_clicked'); actor.send({ type: 'REVEAL_ALL' }) }}
+              onBack={() => { actor.send({ type: 'BACK' }) }}
+              onRevealToAll={() => { actor.send({ type: 'REVEAL_ALL' }) }}
             />
           )}
           {phase === 'reveal' && (
             <RevealPhase
               answer={card.answer}
-              onBack={() => { track('back_clicked', { from_phase: 'reveal' }); actor.send({ type: 'BACK' }) }}
-              onNext={() => { track(isLast ? 'game_end_clicked' : 'next_card_clicked'); actor.send({ type: 'NEXT_CARD' }) }}
+              onBack={() => { actor.send({ type: 'BACK' }) }}
+              onNext={() => { actor.send({ type: 'NEXT_CARD' }) }}
               isLast={isLast}
             />
           )}

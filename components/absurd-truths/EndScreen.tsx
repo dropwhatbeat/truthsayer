@@ -1,20 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
-import { usePostHog } from 'posthog-js/react'
-
 interface Props {
   onNewRound: () => void
   onHome: () => void
 }
 
 export default function EndScreen({ onNewRound, onHome }: Props) {
-  const posthog = usePostHog()
-
-  useEffect(() => {
-    posthog.capture('end_screen_viewed')
-  }, [posthog])
-
   return (
     <div
       className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden"
@@ -47,7 +38,7 @@ export default function EndScreen({ onNewRound, onHome }: Props) {
         </svg>
 
         <button
-          onClick={() => { posthog.capture('new_round_clicked'); onNewRound() }}
+          onClick={() => { onNewRound() }}
           className="btn-press w-full font-caveat font-bold mb-4"
           style={{
             fontSize: '1.7rem',
@@ -64,7 +55,7 @@ export default function EndScreen({ onNewRound, onHome }: Props) {
           ▶ New Round (fresh cards)
         </button>
         <button
-          onClick={() => { posthog.capture('end_home_clicked'); onHome() }}
+          onClick={() => { onHome() }}
           className="btn-press w-full font-caveat font-bold"
           style={{
             fontSize: '1.6rem',

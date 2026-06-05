@@ -2,7 +2,6 @@
 'use client'
 
 import { useState } from 'react'
-import { usePostHog } from 'posthog-js/react'
 import type { DeckType } from '@bsking/game-engine'
 
 export type { DeckType }
@@ -123,7 +122,6 @@ function OptionRow({ label, options, value, onChange, fmt }: {
 }
 
 export default function SetupScreen({ onStart }: Props) {
-  const posthog = usePostHog()
   const [selectedDeck, setSelectedDeck] = useState<DeckType>('absurd-truths')
   const [rounds, setRounds] = useState(10)
   const [timer, setTimer] = useState(30)
@@ -132,12 +130,10 @@ export default function SetupScreen({ onStart }: Props) {
 
   function handleDeckSelect(deck: DeckInfo) {
     if (deck.comingSoon) return
-    posthog.capture('deck_selected', { deck_type: deck.key })
     setSelectedDeck(deck.key as DeckType)
   }
 
   function handleStart() {
-    posthog.capture('setup_confirmed', { rounds, timer_secs: timer, deck_type: selectedDeck })
     onStart(rounds, timer, selectedDeck)
   }
 
