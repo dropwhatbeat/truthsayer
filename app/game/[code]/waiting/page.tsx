@@ -84,7 +84,7 @@ export default function WaitingPage() {
 
   async function patchSetting(update: { deckType?: string; timerSecs?: number; roundCount?: number }) {
     try {
-      await fetch(`/api/rooms/${room.code}`, {
+      await fetch(`/api/rooms/${room!.code}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerId: currentPlayerId, playerSecret: currentPlayerSecret, ...update }),
@@ -127,7 +127,7 @@ export default function WaitingPage() {
         ))
         el.scrollTo({ left: target, behavior: 'smooth' })
       }
-      if (DECKS[settled] && DECKS[settled].key !== room.config.deckType) {
+      if (DECKS[settled] && DECKS[settled].key !== room!.config.deckType) {
         patchSetting({ deckType: DECKS[settled].key })
       }
     }, 300)
@@ -145,18 +145,18 @@ export default function WaitingPage() {
     setError('')
     setStarting(true)
     try {
-      const res = await fetch(`/api/rooms/${room.code}/start`, {
+      const res = await fetch(`/api/rooms/${room!.code}/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerId: currentPlayerId, playerSecret: currentPlayerSecret }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        if (res.status === 409) { router.replace(`/game/${room.code}`); return }
+        if (res.status === 409) { router.replace(`/game/${room!.code}`); return }
         setError(data.error || 'Failed to start game')
         return
       }
-      router.replace(`/game/${room.code}/reading`)
+      router.replace(`/game/${room!.code}/reading`)
     } catch {
       setError('Network error. Please try again.')
     } finally {
