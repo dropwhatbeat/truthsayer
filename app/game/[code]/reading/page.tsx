@@ -36,7 +36,7 @@ export default function ReadingPage() {
     setError('')
     setSubmitting(true)
     try {
-      const res = await fetch(`/api/rooms/${room.code}/moves`, {
+      const res = await fetch(`/api/rooms/${room!.code}/moves`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -51,7 +51,7 @@ export default function ReadingPage() {
         setError(data.error || 'Failed to submit')
         return
       }
-      posthog.capture('voting_started', { room_code: room.code, round_number: round?.roundNumber, role })
+      posthog.capture('voting_started', { room_code: room!.code, round_number: round?.roundNumber, role })
       setSubmitted(true)
     } catch {
       setError('Network error. Please try again.')
@@ -76,7 +76,7 @@ export default function ReadingPage() {
   useEffect(() => {
     if (!room || !round) return
     posthog.capture('round_viewed', {
-      room_code: room.code,
+      room_code: room!.code,
       round_number: round.roundNumber,
       role,
       deck_type: room.config?.deckType,

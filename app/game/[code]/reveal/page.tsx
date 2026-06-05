@@ -25,7 +25,7 @@ export default function RevealPage() {
   useEffect(() => {
     if (!room || !round) return
     posthog.capture('round_revealed', {
-      room_code: room.code,
+      room_code: room!.code,
       round_number: round.roundNumber,
       judge_correct: judgeCorrect,
       deck_type: room.config?.deckType,
@@ -47,7 +47,7 @@ export default function RevealPage() {
     .sort((a, b) => b.score - a.score)
 
   async function handleNextRound() {
-    posthog.capture('next_round_clicked', { room_code: room.code, round_number: round?.roundNumber })
+    posthog.capture('next_round_clicked', { room_code: room!.code, round_number: round?.roundNumber })
     setError('')
     setSubmitting(true)
     try {

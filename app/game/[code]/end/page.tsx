@@ -44,7 +44,7 @@ export default function EndPage() {
   const tieCount = winners.length
 
   async function handleBackToLobby() {
-    posthog.capture('back_to_lobby_clicked', { room_code: room.code })
+    posthog.capture('back_to_lobby_clicked', { room_code: room!.code })
     setError('')
     setStarting(true)
     try {
@@ -71,7 +71,7 @@ export default function EndPage() {
   }
 
   function handleLeaveGame() {
-    posthog.capture('leave_game_clicked', { room_code: room.code })
+    posthog.capture('leave_game_clicked', { room_code: room!.code })
     localStorage.removeItem('bsking-player')
     router.push('/')
   }

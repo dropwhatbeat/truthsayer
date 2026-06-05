@@ -49,7 +49,7 @@ export default function VotingPage() {
         setError(data.error || 'Failed to submit vote')
         return
       }
-      posthog.capture('vote_cast', { room_code: room.code, round_number: round?.roundNumber, role })
+      posthog.capture('vote_cast', { room_code: room!.code, round_number: round?.roundNumber, role })
       setVotedFor(targetPlayerId)
     } catch {
       setError('Network error. Please try again.')
