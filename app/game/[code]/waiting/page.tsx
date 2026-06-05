@@ -180,9 +180,17 @@ export default function WaitingPage() {
           <p className="font-caveat font-bold text-3xl" style={{ color: '#d8401e' }}>
             Waiting Room
           </p>
-          <p className="font-inter text-sm mt-1" style={{ color: '#94a3b8' }}>
-            Room: <CopyCode code={room.code} />
-          </p>
+          <div
+            className="inline-flex flex-col items-center mt-2 px-6 py-3 rounded-2xl border"
+            style={{ background: '#fff', borderColor: '#fde68a' }}
+          >
+            <p className="font-inter text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: '#94a3b8' }}>
+              Room Code
+            </p>
+            <p className="font-caveat font-bold tracking-widest" style={{ fontSize: '2.4rem', color: '#1e293b', lineHeight: 1.1 }}>
+              <CopyCode code={room.code} />
+            </p>
+          </div>
         </div>
 
         {isHost ? (

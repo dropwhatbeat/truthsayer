@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { usePhaseRedirect } from '@/lib/use-phase-redirect'
 import { useGame } from '@/lib/game-context'
 import VoteButtons from '@/components/absurd-truths/VoteButtons'
+import CategoryPills from '@/components/absurd-truths/CategoryPills'
 
 export default function VotingPage() {
   usePhaseRedirect('voting')
@@ -16,6 +17,11 @@ export default function VotingPage() {
 
   const role = currentPlayer?.role
   const isJudge = role === 'judge'
+  const isLiar = role === 'liar'
+  const round = room.currentRound
+  const categories = round?.categories
+    ? (Array.isArray(round.categories) ? round.categories : [])
+    : []
 
   const otherPlayers = room.players.filter(
     (p) => p.id !== currentPlayerId && p.name
@@ -64,6 +70,27 @@ export default function VotingPage() {
             {role ? ({ honest: 'you are the truthsayer', liar: 'try to BS!', judge: 'you are the judge' }[role] ?? `you are the ${role}`) : 'Voting phase'}
           </p>
         </div>
+
+        {/* Card phrase — visible to everyone */}
+        {round?.cardPhrase && (
+          <div
+            className="rounded-3xl px-6 py-5 text-center shadow-sm border"
+            style={{ background: '#FFF8EE', borderColor: '#fde68a' }}
+          >
+            <p
+              className="font-caveat font-bold leading-tight"
+              style={{ fontSize: 'clamp(1.4rem, 5vw, 2rem)', color: '#1e293b', overflowWrap: 'break-word' }}
+            >
+              {round.cardPhrase}
+            </p>
+            {/* Categories (clues) — only liars see these */}
+            {isLiar && categories.length > 0 && (
+              <div className="mt-3">
+                <CategoryPills categories={categories} />
+              </div>
+            )}
+          </div>
+        )}
 
         {isJudge ? (
           <>

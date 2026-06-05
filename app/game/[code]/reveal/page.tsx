@@ -13,6 +13,7 @@ export default function RevealPage() {
 
   if (!room || !currentPlayerId) return null
 
+  const isHost = currentPlayerId === room.createdBy
   const round = room.currentRound
   const vote = room.lastVote
   const honestPlayer = room.players.find((p) => p.id === round?.honestPlayerId)
@@ -140,16 +141,22 @@ export default function RevealPage() {
           </div>
         )}
 
-        {/* Next round */}
-        <button
-          onClick={handleNextRound}
-          disabled={submitting}
-          className="w-full py-4 rounded-xl font-caveat font-bold text-xl shadow-md
-                     transition-all active:scale-[0.97] disabled:opacity-50"
-          style={{ background: '#6a9a26', color: '#2a3f10' }}
-        >
-          {submitting ? 'Advancing...' : 'Next Round →'}
-        </button>
+        {/* Next round — host only */}
+        {isHost ? (
+          <button
+            onClick={handleNextRound}
+            disabled={submitting}
+            className="w-full py-4 rounded-xl font-caveat font-bold text-xl shadow-md
+                       transition-all active:scale-[0.97] disabled:opacity-50"
+            style={{ background: '#6a9a26', color: '#2a3f10' }}
+          >
+            {submitting ? 'Advancing...' : 'Next Round →'}
+          </button>
+        ) : (
+          <p className="text-center font-inter text-sm" style={{ color: '#94a3b8' }}>
+            Waiting for the host to start the next round...
+          </p>
+        )}
 
         {error && (
           <p className="text-red-500 text-sm bg-red-50 rounded-lg py-2 px-4 text-center">

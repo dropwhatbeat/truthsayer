@@ -112,8 +112,8 @@ export default function Home() {
             onKeyDown={(e) => { if (e.key === 'Enter') handleJoin() }}
             placeholder="Enter Room Code"
             maxLength={6}
-            className="flex-1 px-4 py-3 rounded-xl bg-white text-center text-lg tracking-widest uppercase
-                       font-inter focus:outline-none focus:ring-2"
+            className="flex-1 px-4 py-3 rounded-xl bg-white text-center text-xl tracking-widest uppercase
+                       font-caveat font-bold focus:outline-none focus:ring-2"
             style={{ border: '2px solid #e2e8f0', color: '#334155' }}
           />
           <button

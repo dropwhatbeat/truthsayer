@@ -73,6 +73,7 @@ export default function ReadingPage() {
 
   const round = room.currentRound
   const isHonest = role === 'honest'
+  const isLiar = role === 'liar'
 
   const categories = round?.categories
     ? (Array.isArray(round.categories) ? round.categories : [])
@@ -107,7 +108,8 @@ export default function ReadingPage() {
             >
               {round.cardPhrase}
             </p>
-            {categories.length > 0 && (
+            {/* Categories (clues) — only liars see these */}
+            {isLiar && categories.length > 0 && (
               <div className="mt-4">
                 <CategoryPills categories={categories} />
               </div>
