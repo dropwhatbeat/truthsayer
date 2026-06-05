@@ -102,8 +102,7 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
     .values(Array.from({ length: roundCount }, (_, index) => {
       const roundNumber = index + 1
       const roundRoles = getRoundRoles(
-        [{ id: judge.id }, { id: honest.id }, { id: liar.id }],
-        roundNumber
+        [{ id: judge.id }, { id: honest.id }, { id: liar.id }]
       )
 
       return {

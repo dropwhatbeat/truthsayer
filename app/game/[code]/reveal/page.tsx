@@ -75,7 +75,7 @@ export default function RevealPage() {
           >
             <p
               className="font-caveat font-bold leading-tight"
-              style={{ fontSize: 'clamp(1.4rem, 5vw, 2rem)', color: '#1e293b', overflowWrap: 'break-word' }}
+              style={{ fontSize: 'clamp(1.4rem, 5vw, 2rem)', color: '#1e293b', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}
             >
               {round.cardPhrase}
             </p>

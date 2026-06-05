@@ -249,7 +249,7 @@ export async function POST(
           .where(eq(players.roomId, room.id))
           .orderBy(asc(players.createdAt), asc(players.id))
 
-        const nextRoundRoles = getRoundRoles(playerList, currentRound.roundNumber + 1)
+        const nextRoundRoles = getRoundRoles(playerList)
 
         await db
           .update(players)

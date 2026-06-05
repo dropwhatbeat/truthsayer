@@ -142,7 +142,7 @@ export async function POST(request: Request) {
     }
 
     // Start the game: assign round-one roles
-    const roundOneRoles = getRoundRoles(playerData, 1)
+    const roundOneRoles = getRoundRoles(playerData)
 
     await db
       .update(players)
@@ -167,7 +167,7 @@ export async function POST(request: Request) {
 
     for (let i = 0; i < cards.length; i++) {
       const roundNumber = i + 1
-      const roundRoles = getRoundRoles(playerData, roundNumber)
+      const roundRoles = getRoundRoles(playerData)
       const [r] = await db
         .insert(gameRounds)
         .values({
@@ -262,8 +262,8 @@ export async function POST(request: Request) {
     for (let r = 1; r < roundCount; r++) {
       const roundId = roundIds[r]
       if (!roundId) break
-      const priorRoundRoles = getRoundRoles(playerData, r)
-      const nextRoundRoles = getRoundRoles(playerData, r + 1)
+      const priorRoundRoles = getRoundRoles(playerData)
+      const nextRoundRoles = getRoundRoles(playerData)
 
       // next_round to advance to reading
       await db.insert(gameMoves).values({
@@ -321,7 +321,7 @@ export async function POST(request: Request) {
     }
 
     // Last next_round to trigger end
-    const lastRoundRoles = getRoundRoles(playerData, roundCount)
+    const lastRoundRoles = getRoundRoles(playerData)
     await db.insert(gameMoves).values({
       roomId: room.id,
       playerId: lastRoundRoles.judgePlayerId,

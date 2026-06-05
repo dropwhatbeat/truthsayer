@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { getCredentials } from '@/lib/game-context'
 import CopyCode from '@/components/absurd-truths/CopyCode'
 
@@ -13,6 +13,8 @@ const joinRequests = new Map<
 export default function RegisterPage() {
   const params = useParams<{ code: string }>()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isHost = searchParams.get('host') === '1'
   const code = String(params.code).toUpperCase()
   const joinAttemptedRef = useRef(false)
 
@@ -127,10 +129,22 @@ export default function RegisterPage() {
     )
   }
 
+  function handleBack() {
+    localStorage.removeItem('bsking-player')
+    router.push('/')
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
       <div className="w-full max-w-xl space-y-6">
-        <div className="text-center">
+        <div className="relative text-center">
+          <button
+            onClick={handleBack}
+            className="absolute left-0 top-1/2 -translate-y-1/2 font-caveat text-sm"
+            style={{ color: '#94a3b8' }}
+          >
+            ← back
+          </button>
           <p className="font-caveat font-bold" style={{ fontSize: '2rem', color: '#d8401e' }}>
             Enter Your Name
           </p>
@@ -158,7 +172,7 @@ export default function RegisterPage() {
                        transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: '#d8401e', color: '#ffffff' }}
           >
-            {submitting ? 'Joining...' : 'Join Game'}
+            {submitting ? (isHost ? 'Creating...' : 'Joining...') : (isHost ? 'Create Game' : 'Join Game')}
           </button>
         </form>
 

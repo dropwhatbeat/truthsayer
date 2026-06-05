@@ -83,7 +83,7 @@ export async function POST(
       )
     }
 
-    const roundOneRoles = getRoundRoles(playerList, 1)
+    const roundOneRoles = getRoundRoles(playerList)
     await db
       .update(players)
       .set({ role: 'judge' })
@@ -116,7 +116,7 @@ export async function POST(
     // Insert game_rounds
     for (let i = 0; i < cards.length; i++) {
       const roundNumber = i + 1
-      const roundRoles = getRoundRoles(playerList, roundNumber)
+      const roundRoles = getRoundRoles(playerList)
       await db.insert(gameRounds).values({
         roomId: room.id,
         roundNumber,

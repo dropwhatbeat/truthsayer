@@ -9,20 +9,21 @@ export interface RoundRoles {
 }
 
 export function getRoundRoles<T extends PlayerLike>(
-  players: T[],
-  roundNumber: number
+  players: T[]
 ): RoundRoles {
   if (players.length < 3) {
     throw new Error('Need at least 3 players to assign round roles')
   }
 
-  const judgeIndex = (roundNumber - 1) % players.length
-  const honestIndex = (judgeIndex + 1) % players.length
-  const judgePlayerId = players[judgeIndex]!.id
-  const honestPlayerId = players[honestIndex]!.id
-  const liarPlayerIds = players
-    .filter((player) => player.id !== judgePlayerId && player.id !== honestPlayerId)
-    .map((player) => player.id)
+  const shuffled = [...players]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!]
+  }
+
+  const judgePlayerId = shuffled[0]!.id
+  const honestPlayerId = shuffled[1]!.id
+  const liarPlayerIds = shuffled.slice(2).map((p) => p.id)
 
   return {
     judgePlayerId,

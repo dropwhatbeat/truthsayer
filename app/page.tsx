@@ -25,7 +25,7 @@ export default function Home() {
         return
       }
       const data = await res.json()
-      router.push(`/game/${data.code}/register`)
+      router.push(`/game/${data.code}/register?host=1`)
     } catch {
       setError('Network error. Please try again.')
     } finally {
@@ -79,7 +79,7 @@ export default function Home() {
         <button
           onClick={handleCreate}
           disabled={creating}
-          className="w-full py-3 px-6 font-caveat font-bold text-xl
+          className="w-full py-3 px-6 font-caveat font-bold text-2xl
                      transition-all active:scale-[0.97] disabled:opacity-60"
           style={{
             background: '#d8401e',
@@ -90,7 +90,7 @@ export default function Home() {
             transform: 'rotate(-0.5deg)',
           }}
         >
-          {creating ? 'Creating...' : 'Create Room'}
+          {creating ? 'Creating...' : 'Create Game'}
         </button>
 
         <div className="relative">
@@ -119,7 +119,7 @@ export default function Home() {
           <button
             onClick={handleJoin}
             disabled={joining || !roomCode.trim()}
-            className="px-6 py-3 rounded-xl font-caveat font-bold text-lg
+            className="px-6 py-3 rounded-xl font-caveat font-bold text-2xl
                        transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: '#6a9a26', color: '#f4faea', border: '2px solid #4f7a1c' }}
           >

@@ -103,7 +103,7 @@ async function main() {
     })
     .where(eq(rooms.id, room.id));
 
-  const roundOneRoles = getRoundRoles(seededPlayers, 1);
+  const roundOneRoles = getRoundRoles(seededPlayers);
 
   await db
     .update(players)
@@ -126,7 +126,7 @@ async function main() {
 
   for (let index = 0; index < cards.length; index++) {
     const roundNumber = index + 1;
-    const roundRoles = getRoundRoles(seededPlayers, roundNumber);
+    const roundRoles = getRoundRoles(seededPlayers);
 
     await db.insert(gameRounds).values({
       roomId: room.id,

@@ -6,10 +6,10 @@ import { useGame } from '@/lib/game-context'
 import CategoryPills from '@/components/absurd-truths/CategoryPills'
 import Timer from '@/components/absurd-truths/Timer'
 
-const ROLE_LABEL: Record<string, string> = {
-  honest: 'you are the truthsayer',
-  liar: 'try to BS!',
-  judge: 'you are the judge',
+const ROLE_BADGE: Record<string, { emoji: string; title: string; subtitle: string; color: string }> = {
+  judge:  { emoji: '🔍', title: "You're the Judge",       subtitle: 'Guess who is telling the truth',                color: '#7c3aed' },
+  honest: { emoji: '✅', title: "You're the Truthsayer",  subtitle: "Read your real answer silently. Don't give it away.", color: '#6a9a26' },
+  liar:   { emoji: '🃏', title: "You're the Bullshitter", subtitle: 'Cook up a convincing story',                    color: '#d97706' },
 }
 
 export default function ReadingPage() {
@@ -82,13 +82,22 @@ export default function ReadingPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
       <div className="w-full max-w-xl space-y-6 text-center">
-        <div>
-          <p className="font-caveat font-bold text-3xl" style={{ color: '#d8401e' }}>
+        <div className="space-y-2">
+          <p className="font-inter text-xs uppercase tracking-widest" style={{ color: '#94a3b8' }}>
             Round {round?.roundNumber ?? '?'}
           </p>
-          <p className="font-inter text-sm mt-1" style={{ color: '#94a3b8' }}>
-            {role ? (ROLE_LABEL[role] ?? `you are the ${role}`) : 'Reading phase'}
-          </p>
+          {role && ROLE_BADGE[role] ? (
+            <>
+              <p className="font-caveat font-bold text-4xl" style={{ color: ROLE_BADGE[role].color }}>
+                {ROLE_BADGE[role].emoji} {ROLE_BADGE[role].title}
+              </p>
+              <p className="font-inter text-sm" style={{ color: '#64748b' }}>
+                {ROLE_BADGE[role].subtitle}
+              </p>
+            </>
+          ) : (
+            <p className="font-caveat font-bold text-3xl" style={{ color: '#d8401e' }}>Reading phase</p>
+          )}
         </div>
 
         {hasTimer && (
@@ -104,7 +113,7 @@ export default function ReadingPage() {
           >
             <p
               className="font-caveat font-bold leading-tight"
-              style={{ fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', color: '#1e293b', overflowWrap: 'break-word' }}
+              style={{ fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', color: '#1e293b', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}
             >
               {round.cardPhrase}
             </p>
