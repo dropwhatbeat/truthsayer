@@ -40,7 +40,7 @@ export default function WaitingPage() {
 
   // ── Carousel ──────────────────────────────────────────────
   const carouselRef    = useRef<HTMLDivElement>(null)
-  const scrollTimer    = useRef<ReturnType<typeof setTimeout>>()
+  const scrollTimer    = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const didInit        = useRef(false)
   const wheelCleanup   = useRef<(() => void) | null>(null)
   const [centerIdx, setCenterIdx] = useState(0)
