@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import { usePhaseRedirect } from '@/lib/use-phase-redirect'
 import { useGame } from '@/lib/game-context'
 import VoteButtons from '@/components/absurd-truths/VoteButtons'
@@ -9,6 +10,7 @@ import CategoryPills from '@/components/absurd-truths/CategoryPills'
 export default function VotingPage() {
   usePhaseRedirect('voting')
   const { room, currentPlayer, currentPlayerId, currentPlayerSecret } = useGame()
+  const posthog = usePostHog()
   const [submitting, setSubmitting] = useState(false)
   const [votedFor, setVotedFor] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -47,6 +49,7 @@ export default function VotingPage() {
         setError(data.error || 'Failed to submit vote')
         return
       }
+      posthog.capture('vote_cast', { room_code: room.code, round_number: round?.roundNumber, role })
       setVotedFor(targetPlayerId)
     } catch {
       setError('Network error. Please try again.')

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import { usePhaseRedirect } from '@/lib/use-phase-redirect'
 import { useGame } from '@/lib/game-context'
 import CategoryPills from '@/components/absurd-truths/CategoryPills'
@@ -27,6 +28,8 @@ export default function ReadingPage() {
 
   const role = currentPlayer?.role ?? null
   const isJudge = role === 'judge'
+  const posthog = usePostHog()
+  const round = room?.currentRound
 
   async function handleStartVoting() {
     if (!room || !currentPlayerId) return
@@ -48,6 +51,7 @@ export default function ReadingPage() {
         setError(data.error || 'Failed to submit')
         return
       }
+      posthog.capture('voting_started', { room_code: room.code, round_number: round?.roundNumber, role })
       setSubmitted(true)
     } catch {
       setError('Network error. Please try again.')
@@ -69,9 +73,20 @@ export default function ReadingPage() {
     return () => clearInterval(id)
   }, [timeLeft, isJudge, submitted, submitting, hasTimer])
 
+  useEffect(() => {
+    if (!room || !round) return
+    posthog.capture('round_viewed', {
+      room_code: room.code,
+      round_number: round.roundNumber,
+      role,
+      deck_type: room.config?.deckType,
+      card_phrase: round.cardPhrase,
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.code, round?.roundNumber])
+
   if (!room || !currentPlayerId) return null
 
-  const round = room.currentRound
   const isHonest = role === 'honest'
   const isLiar = role === 'liar'
 
@@ -142,7 +157,7 @@ export default function ReadingPage() {
 
         {!isHonest && (
           <p className="font-inter text-sm" style={{ color: '#94a3b8' }}>
-            The honest player is reading their answer. Listen carefully.
+            The honest player is reading their answer.
           </p>
         )}
 

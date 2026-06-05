@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import { usePhaseRedirect } from '@/lib/use-phase-redirect'
 import { useGame } from '@/lib/game-context'
 import ScoreBoard from '@/components/absurd-truths/ScoreBoard'
@@ -8,20 +9,33 @@ import ScoreBoard from '@/components/absurd-truths/ScoreBoard'
 export default function RevealPage() {
   usePhaseRedirect('reveal')
   const { room, currentPlayerId, currentPlayerSecret } = useGame()
+  const posthog = usePostHog()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+
+  const round = room?.currentRound
+  const vote = room?.lastVote
+  const honestPlayer = room?.players.find((p) => p.id === round?.honestPlayerId)
+  const judgePlayer = room?.players.find((p) => p.id === round?.judgePlayerId)
+  const votedFor = vote?.targetPlayerId
+    ? room?.players.find((p) => p.id === vote.targetPlayerId)
+    : null
+  const judgeCorrect = votedFor?.id === honestPlayer?.id
+
+  useEffect(() => {
+    if (!room || !round) return
+    posthog.capture('round_revealed', {
+      room_code: room.code,
+      round_number: round.roundNumber,
+      judge_correct: judgeCorrect,
+      deck_type: room.config?.deckType,
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.code, round?.roundNumber])
 
   if (!room || !currentPlayerId) return null
 
   const isHost = currentPlayerId === room.createdBy
-  const round = room.currentRound
-  const vote = room.lastVote
-  const honestPlayer = room.players.find((p) => p.id === round?.honestPlayerId)
-  const judgePlayer = room.players.find((p) => p.id === round?.judgePlayerId)
-  const votedFor = vote?.targetPlayerId
-    ? room.players.find((p) => p.id === vote.targetPlayerId)
-    : null
-  const judgeCorrect = votedFor?.id === honestPlayer?.id
 
   const scoreEntries = Object.entries(room.scores ?? {})
     .filter(([id]) => room.players.some((p) => p.id === id))
@@ -33,6 +47,7 @@ export default function RevealPage() {
     .sort((a, b) => b.score - a.score)
 
   async function handleNextRound() {
+    posthog.capture('next_round_clicked', { room_code: room.code, round_number: round?.roundNumber })
     setError('')
     setSubmitting(true)
     try {

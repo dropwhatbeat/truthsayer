@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { usePostHog } from 'posthog-js/react'
 import { usePhaseRedirect } from '@/lib/use-phase-redirect'
 import { useGame } from '@/lib/game-context'
 import ScoreBoard from '@/components/absurd-truths/ScoreBoard'
@@ -10,8 +11,20 @@ export default function EndPage() {
   usePhaseRedirect('end')
   const router = useRouter()
   const { room, currentPlayerId, currentPlayerSecret } = useGame()
+  const posthog = usePostHog()
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!room) return
+    posthog.capture('game_completed', {
+      room_code: room.code,
+      deck_type: room.config?.deckType,
+      round_count: room.config?.roundCount,
+      player_count: room.players.filter(p => p.name).length,
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.code])
 
   if (!room || !currentPlayerId) return null
 
@@ -31,6 +44,7 @@ export default function EndPage() {
   const tieCount = winners.length
 
   async function handleBackToLobby() {
+    posthog.capture('back_to_lobby_clicked', { room_code: room.code })
     setError('')
     setStarting(true)
     try {
@@ -57,6 +71,7 @@ export default function EndPage() {
   }
 
   function handleLeaveGame() {
+    posthog.capture('leave_game_clicked', { room_code: room.code })
     localStorage.removeItem('bsking-player')
     router.push('/')
   }

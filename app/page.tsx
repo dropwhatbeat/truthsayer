@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { usePostHog } from 'posthog-js/react'
 
 export default function Home() {
   const router = useRouter()
+  const posthog = usePostHog()
   const [roomCode, setRoomCode] = useState('')
   const [error, setError] = useState('')
   const [joining, setJoining] = useState(false)
@@ -13,6 +15,7 @@ export default function Home() {
   async function handleCreate() {
     setError('')
     setCreating(true)
+    posthog.capture('create_game_clicked')
     try {
       const res = await fetch('/api/rooms', {
         method: 'POST',
@@ -25,6 +28,7 @@ export default function Home() {
         return
       }
       const data = await res.json()
+      posthog.capture('room_created', { room_code: data.code })
       router.push(`/game/${data.code}/register?host=1`)
     } catch {
       setError('Network error. Please try again.')
@@ -41,20 +45,24 @@ export default function Home() {
     }
     setError('')
     setJoining(true)
+    posthog.capture('join_game_clicked', { room_code: code })
     try {
       const res = await fetch(`/api/rooms/${code}`)
       if (!res.ok) {
         if (res.status === 404) {
           setError('Room not found. Check your code and try again.')
+          posthog.capture('join_game_failed', { room_code: code, reason: 'not_found' })
         } else {
           const data = await res.json().catch(() => ({}))
           setError(data.error || 'Failed to join room')
+          posthog.capture('join_game_failed', { room_code: code, reason: 'error' })
         }
         return
       }
       const data = await res.json()
       if (data.status !== 'lobby') {
         setError('Game has already started.')
+        posthog.capture('join_game_failed', { room_code: code, reason: 'game_already_started' })
         return
       }
       router.push(`/game/${code}/register`)

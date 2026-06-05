@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { usePostHog } from 'posthog-js/react'
 import { DECK_METADATA } from '@bsking/game-engine'
 import type { DeckType } from '@bsking/game-engine'
 import { usePhaseRedirect } from '@/lib/use-phase-redirect'
@@ -35,6 +36,7 @@ export default function WaitingPage() {
   usePhaseRedirect('waiting')
   const router = useRouter()
   const { room, currentPlayerId, currentPlayerSecret } = useGame()
+  const posthog = usePostHog()
   const [starting, setStarting]   = useState(false)
   const [error,    setError]      = useState('')
 
@@ -128,6 +130,7 @@ export default function WaitingPage() {
         el.scrollTo({ left: target, behavior: 'smooth' })
       }
       if (DECKS[settled] && DECKS[settled].key !== room!.config.deckType) {
+        posthog.capture('deck_changed', { deck_type: DECKS[settled].key, room_code: room!.code })
         patchSetting({ deckType: DECKS[settled].key })
       }
     }, 300)
@@ -156,6 +159,13 @@ export default function WaitingPage() {
         setError(data.error || 'Failed to start game')
         return
       }
+      posthog.capture('game_started', {
+        room_code: room!.code,
+        deck_type: room!.config.deckType,
+        timer_secs: room!.config.timerSecs,
+        round_count: room!.config.roundCount,
+        player_count: registeredPlayers.length,
+      })
       router.replace(`/game/${room!.code}/reading`)
     } catch {
       setError('Network error. Please try again.')
@@ -278,7 +288,7 @@ export default function WaitingPage() {
                     return (
                       <button
                         key={t}
-                        onClick={() => patchSetting({ timerSecs: t })}
+                        onClick={() => { posthog.capture('timer_changed', { timer_secs: t, room_code: room.code }); patchSetting({ timerSecs: t }) }}
                         className="font-inter text-xs font-semibold rounded-full px-2.5 py-1 border transition-all"
                         style={{
                           borderColor: active ? '#6a9a26' : '#e2e8f0',
@@ -300,7 +310,7 @@ export default function WaitingPage() {
                     return (
                       <button
                         key={r}
-                        onClick={() => patchSetting({ roundCount: r })}
+                        onClick={() => { posthog.capture('rounds_changed', { round_count: r, room_code: room.code }); patchSetting({ roundCount: r }) }}
                         className="font-inter text-xs font-semibold rounded-full px-2.5 py-1 border transition-all"
                         style={{
                           borderColor: active ? '#d8401e' : '#e2e8f0',

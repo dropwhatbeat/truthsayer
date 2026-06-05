@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { usePostHog } from 'posthog-js/react'
 import { getCredentials } from '@/lib/game-context'
 import CopyCode from '@/components/absurd-truths/CopyCode'
 
@@ -13,6 +14,7 @@ const joinRequests = new Map<
 export default function RegisterPage() {
   const params = useParams<{ code: string }>()
   const router = useRouter()
+  const posthog = usePostHog()
   const searchParams = useSearchParams()
   const isHost = searchParams.get('host') === '1'
   const code = String(params.code).toUpperCase()
@@ -113,6 +115,7 @@ export default function RegisterPage() {
         return
       }
 
+      posthog.capture('player_registered', { room_code: code, is_host: isHost })
       router.push(`/game/${code}/waiting`)
     } catch {
       setError('Network error. Please try again.')
