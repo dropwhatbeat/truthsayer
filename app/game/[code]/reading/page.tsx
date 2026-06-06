@@ -15,7 +15,7 @@ const ROLE_BADGE: Record<string, { emoji: string; title: string; subtitle: strin
 
 export default function ReadingPage() {
   usePhaseRedirect('reading')
-  const { room, currentPlayer, currentPlayerId, currentPlayerSecret } = useGame()
+  const { room, currentPlayerId, currentPlayerSecret } = useGame()
 
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -26,10 +26,12 @@ export default function ReadingPage() {
   const [timeLeft, setTimeLeft] = useState(totalSecs)
   const hasAutoAdvanced = useRef(false)
 
-  const role = currentPlayer?.role ?? null
-  const isJudge = role === 'judge'
   const posthog = usePostHog()
   const round = room?.currentRound
+  const isJudge  = !!round && currentPlayerId === round.judgePlayerId
+  const isHonest = !!round && currentPlayerId === round.honestPlayerId
+  const isLiar   = !isJudge && !isHonest
+  const role     = isJudge ? 'judge' : isHonest ? 'honest' : 'liar'
 
   async function handleStartVoting() {
     if (!room || !currentPlayerId) return
@@ -86,9 +88,6 @@ export default function ReadingPage() {
   }, [room?.code, round?.roundNumber])
 
   if (!room || !currentPlayerId) return null
-
-  const isHonest = role === 'honest'
-  const isLiar = role === 'liar'
 
   const categories = round?.categories
     ? (Array.isArray(round.categories) ? round.categories : [])

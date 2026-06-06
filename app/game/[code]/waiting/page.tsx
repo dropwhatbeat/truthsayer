@@ -359,7 +359,7 @@ export default function WaitingPage() {
           </p>
           {registeredPlayers.length > 0 ? (
             <PlayerList
-              players={registeredPlayers.map(p => ({ id: p.id, name: p.name, role: p.role }))}
+              players={registeredPlayers.map(p => ({ id: p.id, name: p.name }))}
               highlightId={currentPlayerId ?? undefined}
             />
           ) : (

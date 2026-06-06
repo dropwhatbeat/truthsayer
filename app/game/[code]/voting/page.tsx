@@ -9,7 +9,7 @@ import CategoryPills from '@/components/absurd-truths/CategoryPills'
 
 export default function VotingPage() {
   usePhaseRedirect('voting')
-  const { room, currentPlayer, currentPlayerId, currentPlayerSecret } = useGame()
+  const { room, currentPlayerId, currentPlayerSecret } = useGame()
   const posthog = usePostHog()
   const [submitting, setSubmitting] = useState(false)
   const [votedFor, setVotedFor] = useState<string | null>(null)
@@ -17,10 +17,11 @@ export default function VotingPage() {
 
   if (!room || !currentPlayerId) return null
 
-  const role = currentPlayer?.role
-  const isJudge = role === 'judge'
-  const isLiar = role === 'liar'
   const round = room.currentRound
+  const isJudge  = !!round && currentPlayerId === round.judgePlayerId
+  const isHonest = !!round && currentPlayerId === round.honestPlayerId
+  const isLiar   = !isJudge && !isHonest
+  const role     = isJudge ? 'judge' : isHonest ? 'honest' : 'liar'
   const categories = round?.categories
     ? (Array.isArray(round.categories) ? round.categories : [])
     : []

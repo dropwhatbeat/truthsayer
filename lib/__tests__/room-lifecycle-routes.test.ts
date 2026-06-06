@@ -3,7 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { Pool } from 'pg'
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { PATCH } from '@/app/api/rooms/[code]/route'
 import { POST as replayPOST } from '@/app/api/rooms/[code]/replay/route'
 import { generatePlayerToken } from '@/lib/auth'
@@ -49,7 +49,6 @@ async function createRoomFixture(status: 'lobby' | 'playing' | 'finished' = 'lob
     .values({
       roomId: room.id,
       name: 'Host',
-      role: status === 'finished' ? 'judge' : null,
       secretHash: hostToken.hash,
     })
     .returning({ id: players.id })
@@ -59,7 +58,6 @@ async function createRoomFixture(status: 'lobby' | 'playing' | 'finished' = 'lob
     .values({
       roomId: room.id,
       name: 'Guest',
-      role: status === 'finished' ? 'honest' : null,
       secretHash: guestToken.hash,
     })
     .returning({ id: players.id })
@@ -197,7 +195,7 @@ describe('POST /api/rooms/[code]/replay', () => {
       .where(eq(rooms.id, fixture.roomId))
       .limit(1)
     const roomPlayers = await db
-      .select({ id: players.id, name: players.name, role: players.role })
+      .select({ id: players.id, name: players.name })
       .from(players)
       .where(eq(players.roomId, fixture.roomId))
     const remainingRounds = await db
@@ -215,7 +213,6 @@ describe('POST /api/rooms/[code]/replay', () => {
     expect(room.createdBy).toBe(fixture.host.id)
     expect(room.deckType).toBe('absurd-truths')
     expect((room.config as { deckType: string }).deckType).toBe('absurd-truths')
-    expect(roomPlayers.every((player) => player.role === null)).toBe(true)
     expect(roomPlayers.map((player) => player.name)).toEqual(['Host', 'Guest'])
     expect(remainingRounds).toHaveLength(0)
     expect(remainingMoves).toHaveLength(0)

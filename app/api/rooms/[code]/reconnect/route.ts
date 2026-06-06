@@ -59,7 +59,6 @@ export async function POST(
     return NextResponse.json({
       playerId: player.id,
       name: player.name,
-      role: player.role,
       valid: true,
     })
   } catch {

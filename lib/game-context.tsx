@@ -8,7 +8,6 @@ import type { DeckType } from '@bsking/game-engine'
 export interface RoomPlayer {
   id: string
   name: string | null
-  role: string | null
 }
 
 export interface RoomState {

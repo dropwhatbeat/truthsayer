@@ -67,7 +67,6 @@ export async function POST(
 
     await db.delete(gameMoves).where(eq(gameMoves.roomId, room.id))
     await db.delete(gameRounds).where(eq(gameRounds.roomId, room.id))
-    await db.update(players).set({ role: null }).where(eq(players.roomId, room.id))
     await db
       .update(rooms)
       .set({

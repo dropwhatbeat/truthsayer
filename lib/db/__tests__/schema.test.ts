@@ -83,24 +83,22 @@ describe("Schema: players", () => {
   it("creates a player linked to a room", async () => {
     const [player] = await db
       .insert(players)
-      .values({ roomId, name: "Alice", role: "judge", secretHash: "hash123" })
+      .values({ roomId, name: "Alice", secretHash: "hash123" })
       .returning();
 
     expect(player.id).toBeDefined();
     expect(player.roomId).toBe(roomId);
     expect(player.name).toBe("Alice");
-    expect(player.role).toBe("judge");
     expect(player.createdAt).toBeInstanceOf(Date);
   });
 
-  it("allows name and role to be null (lobby join)", async () => {
+  it("allows name to be null (lobby join)", async () => {
     const [player] = await db
       .insert(players)
       .values({ roomId, secretHash: "hash_anon" })
       .returning();
 
     expect(player.name).toBeNull();
-    expect(player.role).toBeNull();
     expect(player.secretHash).toBe("hash_anon");
   });
 
@@ -110,19 +108,6 @@ describe("Schema: players", () => {
         .insert(players)
         .values({ roomId: "00000000-0000-0000-0000-000000000000", secretHash: "x" })
     ).rejects.toThrow();
-  });
-
-  it("accepts valid role enum values", async () => {
-    const roles = ["judge", "honest", "liar"] as const;
-
-    for (const role of roles) {
-      const [player] = await db
-        .insert(players)
-        .values({ roomId, name: role, role, secretHash: `hash_${role}` })
-        .returning();
-
-      expect(player.role).toBe(role);
-    }
   });
 });
 
@@ -193,7 +178,7 @@ describe("Schema: game_moves", () => {
 
     const [player] = await db
       .insert(players)
-      .values({ roomId, name: "Bob", role: "honest", secretHash: "hash_b" })
+      .values({ roomId, name: "Bob", secretHash: "hash_b" })
       .returning();
     playerId = player.id;
 
@@ -307,12 +292,12 @@ describe("Seed script output", () => {
       .values({ code: "TEST01", status: "playing", currentPhase: "description" })
       .returning();
 
-    const roles = ["judge", "honest", "liar"] as const;
+    const names = ["judge", "honest", "liar"];
     const createdPlayers = [];
-    for (const role of roles) {
+    for (const name of names) {
       const [p] = await db
         .insert(players)
-        .values({ roomId: room.id, name: `Test ${role}`, role, secretHash: `hash_${role}` })
+        .values({ roomId: room.id, name: `Test ${name}`, secretHash: `hash_${name}` })
         .returning();
       createdPlayers.push(p);
     }
