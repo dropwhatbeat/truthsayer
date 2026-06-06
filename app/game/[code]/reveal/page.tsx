@@ -5,6 +5,13 @@ import { usePostHog } from 'posthog-js/react'
 import { usePhaseRedirect } from '@/lib/use-phase-redirect'
 import { useGame } from '@/lib/game-context'
 import ScoreBoard from '@/components/absurd-truths/ScoreBoard'
+import {
+  getMidGameTargetRound,
+  hasAnsweredSurveyRecently,
+  isSurveyDismissedThisSession,
+  markSurveyAnswered,
+  markSurveyDismissed,
+} from '@/lib/survey-utils'
 
 export default function RevealPage() {
   usePhaseRedirect('reveal')
@@ -30,6 +37,28 @@ export default function RevealPage() {
       judge_correct: judgeCorrect,
       deck_type: room.config?.deckType,
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.code, round?.roundNumber])
+
+  useEffect(() => {
+    if (!room || !round || !room.config?.roundCount) return
+    const targetRound = getMidGameTargetRound(room.code, room.config.roundCount)
+    if (round.roundNumber !== targetRound) return
+    if (hasAnsweredSurveyRecently('Mid-Game Feedback')) return
+    if (isSurveyDismissedThisSession('Mid-Game Feedback')) return
+
+    posthog.getSurveys((surveys) => {
+      const survey = surveys.find((s) => s.name === 'Mid-Game Feedback')
+      if (!survey) return
+      posthog.renderSurvey(survey.id, '#posthog-midgame-survey')
+    })
+
+    const unsubscribe = posthog.on('eventCaptured', (event) => {
+      if (event?.properties?.['$survey_name'] !== 'Mid-Game Feedback') return
+      if (event.event === 'survey sent') markSurveyAnswered('Mid-Game Feedback')
+      if (event.event === 'survey dismissed') markSurveyDismissed('Mid-Game Feedback')
+    })
+    return unsubscribe
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.code, round?.roundNumber])
 
@@ -155,6 +184,8 @@ export default function RevealPage() {
             <ScoreBoard scores={scoreEntries} />
           </div>
         )}
+
+        <div id="posthog-midgame-survey" />
 
         {/* Next round — host only */}
         {isHost ? (

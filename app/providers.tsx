@@ -11,6 +11,7 @@ if (typeof window !== 'undefined' && posthogKey) {
   posthog.init(posthogKey, {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     person_profiles: 'always',
+    disable_surveys_automatic_display: true,
   })
 }
 
