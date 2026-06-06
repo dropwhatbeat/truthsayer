@@ -9,15 +9,16 @@ import { usePhaseRedirect } from '@/lib/use-phase-redirect'
 import { useGame } from '@/lib/game-context'
 import PlayerList from '@/components/absurd-truths/PlayerList'
 import CopyCode from '@/components/absurd-truths/CopyCode'
+import HowToPlay from '@/components/absurd-truths/HowToPlay'
 
 const DECKS: { key: DeckType; emoji: string; sub: string }[] = [
-  { key: 'absurd-truths',   emoji: '🤪', sub: 'real words that sound completely fake' },
+  { key: 'absurd-truths',   emoji: '🏭', sub: 'manufacture the most convincing BS' },
   { key: 'chinese-sayings', emoji: '🐉', sub: 'ancient wisdom, gloriously misremembered' },
   { key: 'medical',         emoji: '🩺', sub: "syndromes you'll swear we made up" },
 ]
 
 const DECK_EMOJI: Record<string, string> = {
-  'absurd-truths': '🤪',
+  'absurd-truths': '🏭',
   'chinese-sayings': '🐉',
   medical: '🩺',
 }
@@ -367,6 +368,8 @@ export default function WaitingPage() {
             </p>
           )}
         </div>
+
+        <HowToPlay />
 
         {isHost ? (
           <button

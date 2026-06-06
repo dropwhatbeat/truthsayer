@@ -21,7 +21,7 @@ interface DeckInfo {
 }
 
 const DECKS: DeckInfo[] = [
-  { key: 'absurd-truths',   glyph: '🧠', title: 'Absurd Truths',   sub: 'real words that sound completely fake',            hints: ['🦑','💃','🍳'], count: 48 },
+  { key: 'absurd-truths',   glyph: '🏭', title: 'Bullshit Factory', sub: 'real words that sound completely fake',            hints: ['🦑','💃','🍳'], count: 48 },
   { key: 'chinese-sayings', glyph: '🏮', title: 'Chinese 成语',     sub: 'four characters hiding a thousand years of chaos',   hints: ['🀄','龙','📜'], count: 64 },
   { key: 'medical',         glyph: '🩺', title: 'Medical Marvels',  sub: "syndromes you'll swear we made up",                 hints: ['🧠','🦴','💊'], count: 36 },
   { key: 'science',         glyph: '🔬', title: 'Mad Science',      sub: 'real phenomena, gloriously unhinged',               hints: ['🧪','🦠','🌋'], count: 44, comingSoon: true },
@@ -174,13 +174,13 @@ export default function SetupScreen({ onStart }: Props) {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 8 }}>
           <h1 className="font-caveat" style={{ fontWeight: 700, fontSize: 'clamp(2.6rem,7vw,4.4rem)', color: '#d8401e', lineHeight: 1, transform: 'rotate(-1deg)', margin: 0 }}>
-            Truthsayer
+            Bullshit Factory
           </h1>
           <svg width="210" height="13" viewBox="0 0 280 14" fill="none" style={{ display: 'block', margin: '4px auto 0' }}>
             <path d="M0 7 Q35 1 70 7 Q105 13 140 7 Q175 1 210 7 Q245 13 280 7" stroke="#6a9a26" strokeWidth="3" fill="none" strokeLinecap="round"/>
           </svg>
           <p className="font-caveat" style={{ fontStyle: 'italic', fontWeight: 600, fontSize: 'clamp(1.05rem,2.6vw,1.5rem)', color: '#94a3b8', marginTop: 2 }}>
-            a game of beautiful lies
+            where lies are made
           </p>
           <p className="font-caveat" style={{ fontWeight: 700, fontSize: 'clamp(1.5rem,3.4vw,2.1rem)', color: '#64748b', marginTop: 16, marginBottom: 0, transform: 'rotate(0.5deg)' }}>
             Pick a pack.

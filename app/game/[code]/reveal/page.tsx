@@ -167,11 +167,15 @@ export default function RevealPage() {
             <p className="font-caveat font-bold text-lg" style={{ color: judgeCorrect ? '#b45309' : '#a82d12' }}>
               {judgeCorrect ? 'Judge got it!' : 'Bluff successful!'}
             </p>
-            <p className="font-inter text-xs mt-0.5" style={{ color: '#64748b' }}>
-              {judgeCorrect
-                ? `+1 point for ${judgePlayer?.name || 'the judge'}`
-                : `+1 point for ${honestPlayer?.name || 'the truthsayer'}`}
-            </p>
+            {judgeCorrect ? (
+              <p className="font-inter text-xs mt-0.5" style={{ color: '#64748b' }}>
+                +1 point each for {judgePlayer?.name || 'the judge'} &amp; {honestPlayer?.name || 'the truthsayer'}
+              </p>
+            ) : (
+              <p className="font-inter text-xs mt-0.5" style={{ color: '#64748b' }}>
+                +2 points for {votedFor?.name || 'the bullshitter'}
+              </p>
+            )}
           </div>
         </div>
 

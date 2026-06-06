@@ -75,13 +75,85 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#FFF9EC' }}>
-      <h1 className="font-caveat font-bold mb-2" style={{ fontSize: '3rem', color: '#d8401e', transform: 'rotate(-1deg)' }}>
-        Absurd Truths
+      {/* Factory illustration */}
+      <svg width="100%" viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ maxWidth: 300, display: 'block', marginBottom: 4 }}>
+        <defs>
+          <filter id="cloud-pop" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#c8a87a" floodOpacity="0.22"/>
+          </filter>
+        </defs>
+
+        {/* Left smoke cloud */}
+        <g filter="url(#cloud-pop)">
+          <circle cx="88" cy="52" r="14" fill="white"/>
+          <circle cx="100" cy="55" r="12" fill="white"/>
+          <circle cx="76" cy="55" r="12" fill="white"/>
+          <circle cx="94" cy="41" r="13" fill="white"/>
+          <circle cx="80" cy="43" r="12" fill="white"/>
+        </g>
+        <text x="88" y="52" textAnchor="middle" dominantBaseline="middle" fontSize="12" fontWeight="bold" fill="#d8401e" style={{ fontFamily: 'var(--font-caveat), cursive' }}>BS</text>
+
+        {/* Right smoke cloud */}
+        <g filter="url(#cloud-pop)">
+          <circle cx="234" cy="46" r="16" fill="white"/>
+          <circle cx="250" cy="50" r="14" fill="white"/>
+          <circle cx="218" cy="50" r="13" fill="white"/>
+          <circle cx="242" cy="33" r="15" fill="white"/>
+          <circle cx="226" cy="36" r="13" fill="white"/>
+        </g>
+        <text x="234" y="46" textAnchor="middle" dominantBaseline="middle" fontSize="13" fontWeight="bold" fill="#d8401e" style={{ fontFamily: 'var(--font-caveat), cursive' }}>BS</text>
+
+        {/* Left chimney */}
+        <rect x="81" y="67" width="20" height="53" fill="#2d1a0e" rx="2"/>
+        <rect x="78" y="63" width="26" height="6" fill="#1a0f06" rx="1"/>
+
+        {/* Right chimney */}
+        <rect x="224" y="62" width="22" height="58" fill="#2d1a0e" rx="2"/>
+        <rect x="221" y="58" width="28" height="6" fill="#1a0f06" rx="1"/>
+
+        {/* Roof accent band */}
+        <rect x="54" y="116" width="212" height="9" fill="#b83518"/>
+
+        {/* Main factory body */}
+        <rect x="58" y="123" width="204" height="72" fill="#d8401e" rx="3"/>
+
+        {/* Factory sign */}
+        <rect x="126" y="126" width="68" height="15" fill="#a82d12" rx="2"/>
+        <text x="160" y="134" textAnchor="middle" dominantBaseline="middle" fontSize="7" fill="#fff5f1" letterSpacing="1" style={{ fontFamily: 'var(--font-inter), sans-serif', fontWeight: 700 }}>BS FACTORY</text>
+
+        {/* Windows */}
+        <rect x="76" y="137" width="26" height="22" fill="#fff5f1" rx="2"/>
+        <rect x="114" y="137" width="26" height="22" fill="#fff5f1" rx="2"/>
+        <rect x="184" y="137" width="26" height="22" fill="#fff5f1" rx="2"/>
+        <rect x="222" y="137" width="26" height="22" fill="#fff5f1" rx="2"/>
+
+        {/* Window cross bars */}
+        <line x1="89" y1="137" x2="89" y2="159" stroke="#d8401e" strokeWidth="1" opacity="0.35"/>
+        <line x1="76" y1="148" x2="102" y2="148" stroke="#d8401e" strokeWidth="1" opacity="0.35"/>
+        <line x1="127" y1="137" x2="127" y2="159" stroke="#d8401e" strokeWidth="1" opacity="0.35"/>
+        <line x1="114" y1="148" x2="140" y2="148" stroke="#d8401e" strokeWidth="1" opacity="0.35"/>
+        <line x1="197" y1="137" x2="197" y2="159" stroke="#d8401e" strokeWidth="1" opacity="0.35"/>
+        <line x1="184" y1="148" x2="210" y2="148" stroke="#d8401e" strokeWidth="1" opacity="0.35"/>
+        <line x1="235" y1="137" x2="235" y2="159" stroke="#d8401e" strokeWidth="1" opacity="0.35"/>
+        <line x1="222" y1="148" x2="248" y2="148" stroke="#d8401e" strokeWidth="1" opacity="0.35"/>
+
+        {/* Central door */}
+        <rect x="142" y="153" width="36" height="42" fill="#a82d12" rx="2"/>
+        <circle cx="173" cy="176" r="2.5" fill="#fbbf24"/>
+
+        {/* Ground */}
+        <line x1="30" y1="195" x2="290" y2="195" stroke="#6a9a26" strokeWidth="2" strokeLinecap="round" opacity="0.4"/>
+        <ellipse cx="70" cy="196" rx="18" ry="6" fill="#6a9a26" opacity="0.35"/>
+        <ellipse cx="250" cy="196" rx="18" ry="6" fill="#6a9a26" opacity="0.35"/>
+      </svg>
+
+      <h1 className="font-caveat font-bold mb-1" style={{ fontSize: '2.8rem', color: '#d8401e', transform: 'rotate(-1deg)', lineHeight: 1 }}>
+        Bullshit Factory
       </h1>
       <svg width="160" height="10" viewBox="0 0 280 14" fill="none" className="mb-1">
         <path d="M0 7 Q35 1 70 7 Q105 13 140 7 Q175 1 210 7 Q245 13 280 7" stroke="#6a9a26" strokeWidth="3" fill="none" strokeLinecap="round"/>
       </svg>
-      <p className="font-inter text-sm mb-12" style={{ color: '#94a3b8' }}>a game of beautiful lies</p>
+      <p className="font-inter text-sm mb-12" style={{ color: '#94a3b8' }}>where lies are made</p>
 
       <div className="w-full max-w-xl space-y-6">
         <button

@@ -10,8 +10,8 @@ export interface DeckMetadata {
 
 export const DECK_METADATA: Record<DeckType, DeckMetadata> = {
   'absurd-truths': {
-    label: 'Absurd Truths',
-    description: 'Chaotic prompts and punchlines built for the core party-game flow.',
+    label: 'Bullshit Factory',
+    description: 'Real words that sound completely fake — manufacture the most convincing BS.',
   },
   'chinese-sayings': {
     label: 'Chinese 成语',

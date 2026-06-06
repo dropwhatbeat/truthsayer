@@ -141,8 +141,9 @@ export async function GET(
 
       if (targetId === honestPlayerId) {
         scores[judgePlayerId] = (scores[judgePlayerId] || 0) + 1
-      } else {
         scores[honestPlayerId] = (scores[honestPlayerId] || 0) + 1
+      } else {
+        scores[targetId] = (scores[targetId] || 0) + 2
       }
     }
 

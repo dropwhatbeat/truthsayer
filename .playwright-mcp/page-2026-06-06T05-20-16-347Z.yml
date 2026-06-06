@@ -1,0 +1,18 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img [ref=e3]:
+      - generic [ref=e10]: BS
+      - generic [ref=e17]: BS
+      - generic [ref=e25]: BS FACTORY
+    - heading "Bullshit Factory" [level=1] [ref=e34]
+    - img [ref=e35]
+    - paragraph [ref=e37]: where lies are made
+    - generic [ref=e38]:
+      - button "Create Game" [ref=e39] [cursor=pointer]
+      - generic [ref=e44]: or join with code
+      - generic [ref=e45]:
+        - textbox "Enter Room Code" [ref=e46]
+        - button "Join" [disabled] [ref=e47]
+  - button "Open Next.js Dev Tools" [ref=e53] [cursor=pointer]:
+    - img [ref=e54]
+  - alert [ref=e57]
