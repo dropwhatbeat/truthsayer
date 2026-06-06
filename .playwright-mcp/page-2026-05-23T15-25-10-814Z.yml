@@ -1,9 +1,0 @@
-- generic [ref=e2]:
-  - heading "Absurd Truths" [level=1] [ref=e3]
-  - paragraph [ref=e4]: A game of beautiful lies
-  - generic [ref=e5]:
-    - button "Create Room" [ref=e6] [cursor=pointer]
-    - generic [ref=e11]: or join with code
-    - generic [ref=e12]:
-      - textbox "Enter Room Code" [ref=e13]
-      - button "Join" [disabled] [ref=e14]
