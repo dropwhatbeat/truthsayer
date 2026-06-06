@@ -30,6 +30,17 @@ export default function RevealPage() {
       judge_correct: judgeCorrect,
       deck_type: room.config?.deckType,
     })
+    if (
+      room.config?.roundCount &&
+      round.roundNumber === Math.ceil(room.config.roundCount / 2)
+    ) {
+      posthog.capture('mid_game_reached', {
+        room_code: room.code,
+        round_number: round.roundNumber,
+        total_rounds: room.config.roundCount,
+        deck_type: room.config.deckType,
+      })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.code, round?.roundNumber])
 

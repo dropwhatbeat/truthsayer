@@ -23,3 +23,5 @@
 [  873256ms] [LOG] [Fast Refresh] done in 367ms @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
 [  876701ms] [LOG] [Fast Refresh] rebuilding @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
 [  876939ms] [LOG] [Fast Refresh] done in 239ms @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[ 1578625ms] [LOG] [Fast Refresh] rebuilding @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[ 1579091ms] [LOG] [Fast Refresh] done in 469ms @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
