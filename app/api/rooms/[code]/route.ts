@@ -29,7 +29,6 @@ export async function GET(
       .select({
         id: players.id,
         name: players.name,
-        role: players.role,
       })
       .from(players)
       .where(eq(players.roomId, room.id))
@@ -161,7 +160,6 @@ export async function GET(
       players: playerList.map(p => ({
         id: p.id,
         name: p.name,
-        role: p.role,
       })),
     })
   } catch {

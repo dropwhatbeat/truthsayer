@@ -100,7 +100,7 @@ export async function POST(
     const moveData = parseMoveData(body.data)
 
     if (moveType === 'ready_to_vote') {
-      if (player.role !== 'judge') {
+      if (currentRound.judgePlayerId !== player.id) {
         return NextResponse.json(
           { error: 'Only the judge can start voting' },
           { status: 409 }
@@ -129,7 +129,7 @@ export async function POST(
     }
 
     if (moveType === 'cast_vote') {
-      if (player.role !== 'judge') {
+      if (currentRound.judgePlayerId !== player.id) {
         return NextResponse.json({ error: 'Only the judge can vote' }, { status: 409 })
       }
 
@@ -184,7 +184,7 @@ export async function POST(
       // Allow exactly one round-advance move, initiated by either the host or
       // the judge. This keeps reveal/end progression consistent across clients.
       const isHost = room.createdBy === player.id
-      const isJudge = player.role === 'judge'
+      const isJudge = currentRound.judgePlayerId === player.id
       if (!isHost && !isJudge) {
         return NextResponse.json(
           { error: 'Only the host or judge can advance the round' },
@@ -251,22 +251,20 @@ export async function POST(
 
         const nextRoundRoles = getRoundRoles(playerList)
 
+        // Update next round's role fields BEFORE advancing currentRoundNumber so
+        // polling clients never see a round number pointing to a row with null roles.
         await db
-          .update(players)
-          .set({ role: 'judge' })
-          .where(eq(players.id, nextRoundRoles.judgePlayerId))
-
-        await db
-          .update(players)
-          .set({ role: 'honest' })
-          .where(eq(players.id, nextRoundRoles.honestPlayerId))
-
-        for (const liarPlayerId of nextRoundRoles.liarPlayerIds) {
-          await db
-            .update(players)
-            .set({ role: 'liar' })
-            .where(eq(players.id, liarPlayerId))
-        }
+          .update(gameRounds)
+          .set({
+            judgePlayerId: nextRoundRoles.judgePlayerId,
+            honestPlayerId: nextRoundRoles.honestPlayerId,
+          })
+          .where(
+            and(
+              eq(gameRounds.roomId, room.id),
+              eq(gameRounds.roundNumber, currentRound.roundNumber + 1)
+            )
+          )
 
         await db
           .update(rooms)

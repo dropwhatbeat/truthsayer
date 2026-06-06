@@ -35,7 +35,6 @@ export const players = pgTable("players", {
     .notNull()
     .references(() => rooms.id, { onDelete: "cascade" }),
   name: text("name"),
-  role: text("role", { enum: ["judge", "honest", "liar"] }),
   secretHash: text("secret_hash"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

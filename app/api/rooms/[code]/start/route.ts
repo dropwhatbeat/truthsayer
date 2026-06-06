@@ -83,24 +83,6 @@ export async function POST(
       )
     }
 
-    const roundOneRoles = getRoundRoles(playerList)
-    await db
-      .update(players)
-      .set({ role: 'judge' })
-      .where(eq(players.id, roundOneRoles.judgePlayerId))
-
-    await db
-      .update(players)
-      .set({ role: 'honest' })
-      .where(eq(players.id, roundOneRoles.honestPlayerId))
-
-    for (const liarPlayerId of roundOneRoles.liarPlayerIds) {
-      await db
-        .update(players)
-        .set({ role: 'liar' })
-        .where(eq(players.id, liarPlayerId))
-    }
-
     // Prepare deck
     const config = typeof room.config === 'string'
       ? JSON.parse(room.config)
@@ -113,15 +95,16 @@ export async function POST(
     await db.delete(gameMoves).where(eq(gameMoves.roomId, room.id))
     await db.delete(gameRounds).where(eq(gameRounds.roomId, room.id))
 
-    // Insert game_rounds
+    const roundOneRoles = getRoundRoles(playerList)
+
+    // Insert game_rounds — only round 1 gets roles assigned now; future rounds assigned just-in-time via next_round
     for (let i = 0; i < cards.length; i++) {
-      const roundNumber = i + 1
-      const roundRoles = getRoundRoles(playerList)
+      const isFirstRound = i === 0
       await db.insert(gameRounds).values({
         roomId: room.id,
-        roundNumber,
-        judgePlayerId: roundRoles.judgePlayerId,
-        honestPlayerId: roundRoles.honestPlayerId,
+        roundNumber: i + 1,
+        judgePlayerId: isFirstRound ? roundOneRoles.judgePlayerId : null,
+        honestPlayerId: isFirstRound ? roundOneRoles.honestPlayerId : null,
         cardPhrase: cards[i].phrase,
         cardAnswer: cards[i].answer,
         categories: cards[i].categories ?? [],

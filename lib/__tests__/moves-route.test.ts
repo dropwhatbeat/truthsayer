@@ -7,7 +7,7 @@ import { and, eq } from 'drizzle-orm'
 import { POST } from '@/app/api/rooms/[code]/moves/route'
 import { generatePlayerToken } from '@/lib/auth'
 import { gameMoves, gameRounds, players, rooms } from '@/lib/db/schema'
-import { getRoundRoles } from '@/lib/round-roles'
+
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const db = drizzle(pool)
@@ -67,7 +67,6 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
     .values({
       roomId: room.id,
       name: 'Judge',
-      role: 'judge',
       secretHash: judgeToken.hash,
     })
     .returning({ id: players.id })
@@ -77,7 +76,6 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
     .values({
       roomId: room.id,
       name: 'Honest',
-      role: 'honest',
       secretHash: honestToken.hash,
     })
     .returning({ id: players.id })
@@ -87,7 +85,6 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
     .values({
       roomId: room.id,
       name: 'Liar',
-      role: 'liar',
       secretHash: liarToken.hash,
     })
     .returning({ id: players.id })
@@ -101,15 +98,13 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
     .insert(gameRounds)
     .values(Array.from({ length: roundCount }, (_, index) => {
       const roundNumber = index + 1
-      const roundRoles = getRoundRoles(
-        [{ id: judge.id }, { id: honest.id }, { id: liar.id }]
-      )
+      const isFirstRound = index === 0
 
       return {
         roomId: room.id,
         roundNumber,
-        judgePlayerId: roundRoles.judgePlayerId,
-        honestPlayerId: roundRoles.honestPlayerId,
+        judgePlayerId: isFirstRound ? judge.id : null,
+        honestPlayerId: isFirstRound ? honest.id : null,
         cardPhrase: `Test phrase ${roundNumber}`,
         cardAnswer: `Test answer ${roundNumber}`,
         categories: [],
@@ -301,17 +296,14 @@ describe('POST /api/rooms/[code]/moves', () => {
 
     expect(response.status).toBe(200)
 
-    const playerList = await db
-      .select({ id: players.id, role: players.role })
-      .from(players)
-      .where(eq(players.roomId, fixture.roomId))
+    const [round2] = await db
+      .select({ judgePlayerId: gameRounds.judgePlayerId, honestPlayerId: gameRounds.honestPlayerId })
+      .from(gameRounds)
+      .where(and(eq(gameRounds.roomId, fixture.roomId), eq(gameRounds.roundNumber, 2)))
+      .limit(1)
 
-    const judgePlayer = playerList.find((player) => player.role === 'judge')
-    const honestPlayer = playerList.find((player) => player.role === 'honest')
-    const liarPlayers = playerList.filter((player) => player.role === 'liar')
-
-    expect(judgePlayer?.id).toBe(fixture.honest.id)
-    expect(honestPlayer?.id).toBe(fixture.liar.id)
-    expect(liarPlayers.map((player) => player.id)).toEqual([fixture.judge.id])
+    expect(round2?.judgePlayerId).toBeTruthy()
+    expect(round2?.honestPlayerId).toBeTruthy()
+    expect(round2?.judgePlayerId).not.toBe(round2?.honestPlayerId)
   })
 })

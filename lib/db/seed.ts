@@ -104,35 +104,17 @@ async function main() {
     .where(eq(rooms.id, room.id));
 
   const roundOneRoles = getRoundRoles(seededPlayers);
-
-  await db
-    .update(players)
-    .set({ role: "judge" })
-    .where(eq(players.id, roundOneRoles.judgePlayerId));
-
-  await db
-    .update(players)
-    .set({ role: "honest" })
-    .where(eq(players.id, roundOneRoles.honestPlayerId));
-
-  for (const liarPlayerId of roundOneRoles.liarPlayerIds) {
-    await db
-      .update(players)
-      .set({ role: "liar" })
-      .where(eq(players.id, liarPlayerId));
-  }
-
   const cards = prepareDeck(deckType, roundCount);
 
   for (let index = 0; index < cards.length; index++) {
     const roundNumber = index + 1;
-    const roundRoles = getRoundRoles(seededPlayers);
+    const isFirstRound = index === 0;
 
     await db.insert(gameRounds).values({
       roomId: room.id,
       roundNumber,
-      judgePlayerId: roundRoles.judgePlayerId,
-      honestPlayerId: roundRoles.honestPlayerId,
+      judgePlayerId: isFirstRound ? roundOneRoles.judgePlayerId : null,
+      honestPlayerId: isFirstRound ? roundOneRoles.honestPlayerId : null,
       cardPhrase: cards[index]!.phrase,
       cardAnswer: cards[index]!.answer,
       categories: cards[index]!.categories ?? [],
