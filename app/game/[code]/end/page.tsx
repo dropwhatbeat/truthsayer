@@ -6,7 +6,6 @@ import { usePostHog } from 'posthog-js/react'
 import { usePhaseRedirect } from '@/lib/use-phase-redirect'
 import { useGame } from '@/lib/game-context'
 import ScoreBoard from '@/components/absurd-truths/ScoreBoard'
-import { hasAnsweredSurveyRecently, markSurveyAnswered } from '@/lib/survey-utils'
 
 export default function EndPage() {
   usePhaseRedirect('end')
@@ -24,21 +23,6 @@ export default function EndPage() {
       round_count: room.config?.roundCount,
       player_count: room.players.filter(p => p.name).length,
     })
-
-    if (!hasAnsweredSurveyRecently('NPS')) {
-      posthog.getSurveys((surveys) => {
-        const survey = surveys.find((s) => s.name === 'NPS')
-        if (!survey) return
-        posthog.renderSurvey(survey.id, '#posthog-nps-survey')
-      })
-
-      const unsubscribe = posthog.on('eventCaptured', (event) => {
-        if (event?.properties?.['$survey_name'] === 'NPS' && event.event === 'survey sent') {
-          markSurveyAnswered('NPS')
-        }
-      })
-      return unsubscribe
-    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.code])
 
@@ -129,8 +113,6 @@ export default function EndPage() {
             <ScoreBoard scores={scoreEntries} />
           </div>
         )}
-
-        <div id="posthog-nps-survey" />
 
         <svg width="160" height="12" viewBox="0 0 160 12" fill="none" className="mx-auto">
           <path d="M0 6 Q20 0 40 6 Q60 12 80 6 Q100 0 120 6 Q140 12 160 6" stroke="#6a9a26" strokeWidth="2.5" fill="none" strokeLinecap="round"/>

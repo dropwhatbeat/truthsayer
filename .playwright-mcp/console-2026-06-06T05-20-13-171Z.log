@@ -12,3 +12,14 @@
 [  160542ms] [LOG] [Fast Refresh] done in 208ms @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
 [  161124ms] [LOG] [Fast Refresh] rebuilding @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
 [  161447ms] [LOG] [Fast Refresh] done in 323ms @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[  825087ms] [LOG] [Fast Refresh] rebuilding @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[  826073ms] [WARNING] [PostHog.js] You have already initialized PostHog! Re-initializing is a no-op @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[  826085ms] [LOG] [Fast Refresh] done in 999ms @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[  856536ms] [LOG] [Fast Refresh] rebuilding @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[  856936ms] [LOG] [Fast Refresh] done in 401ms @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[  864222ms] [LOG] [Fast Refresh] rebuilding @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[  864557ms] [LOG] [Fast Refresh] done in 335ms @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[  872888ms] [LOG] [Fast Refresh] rebuilding @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[  873256ms] [LOG] [Fast Refresh] done in 367ms @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[  876701ms] [LOG] [Fast Refresh] rebuilding @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
+[  876939ms] [LOG] [Fast Refresh] done in 239ms @ https://us-assets.i.posthog.com/static/posthog-recorder.js?v=1.372.1:0
