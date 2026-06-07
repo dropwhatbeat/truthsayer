@@ -180,7 +180,7 @@ export default function SetupScreen({ onStart }: Props) {
             <path d="M0 7 Q35 1 70 7 Q105 13 140 7 Q175 1 210 7 Q245 13 280 7" stroke="#6a9a26" strokeWidth="3" fill="none" strokeLinecap="round"/>
           </svg>
           <p className="font-caveat" style={{ fontStyle: 'italic', fontWeight: 600, fontSize: 'clamp(1.05rem,2.6vw,1.5rem)', color: '#94a3b8', marginTop: 2 }}>
-            where lies are made
+            where lies are manufactured
           </p>
           <p className="font-caveat" style={{ fontWeight: 700, fontSize: 'clamp(1.5rem,3.4vw,2.1rem)', color: '#64748b', marginTop: 16, marginBottom: 0, transform: 'rotate(0.5deg)' }}>
             Pick a pack.

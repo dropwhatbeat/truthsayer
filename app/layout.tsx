@@ -18,7 +18,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Bullshit Factory',
-  description: 'where lies are made',
+  description: 'where lies are manufactured',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
